@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35013.160
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BibliothequeQualiteDev.Server", "BibliothequeQualiteDev.Server\BibliothequeQualiteDev.Server.csproj", "{3DA75843-A2CA-4F26-A2DF-9BD78B84D702}"
+EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "bibliothequequalitedev.client", "bibliothequequalitedev.client\bibliothequequalitedev.client.esproj", "{73A09CFE-2808-4DA7-AD6C-247BCDE7AD10}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3DA75843-A2CA-4F26-A2DF-9BD78B84D702}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DA75843-A2CA-4F26-A2DF-9BD78B84D702}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DA75843-A2CA-4F26-A2DF-9BD78B84D702}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DA75843-A2CA-4F26-A2DF-9BD78B84D702}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73A09CFE-2808-4DA7-AD6C-247BCDE7AD10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73A09CFE-2808-4DA7-AD6C-247BCDE7AD10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73A09CFE-2808-4DA7-AD6C-247BCDE7AD10}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{73A09CFE-2808-4DA7-AD6C-247BCDE7AD10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73A09CFE-2808-4DA7-AD6C-247BCDE7AD10}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73A09CFE-2808-4DA7-AD6C-247BCDE7AD10}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2EFB3F85-9A8F-480D-A45F-F0E8C39434C5}
+	EndGlobalSection
+EndGlobal

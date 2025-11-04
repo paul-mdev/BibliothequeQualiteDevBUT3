@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "6uCIUepqF1A=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Paul\\source\\repos\\BibliothequeQualiteDev\\BibliothequeQualiteDev.Server\\BibliothequeQualiteDev.Server.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Paul\\.nuget\\packages\\microsoft.aspnetcore.spaproxy\\8.0.21\\microsoft.aspnetcore.spaproxy.8.0.21.nupkg.sha512"
+  ],
+  "logs": []
+}

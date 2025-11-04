@@ -1,0 +1,6 @@
+@BibliothequeQualiteDev.Server_HostAddress = http://localhost:5232
+
+GET {{BibliothequeQualiteDev.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
