@@ -2,12 +2,12 @@ using System.Reflection.Metadata;
 
 public class BookModel
 {
-    public int Id { get; set; }
-    public string BookName { get; set; } = string.Empty;
-    public string BookAuthor{ get; set; }
-    public string BookEditor { get; set; }
+    public int book_id { get; set; }
+    public string book_name { get; set; } = string.Empty;
+    public string book_author{ get; set; }
+    public string book_editor { get; set; }
 
-    public DateTime BookDate { get; set; }
+    public DateTime book_date { get; set; }
   //  public Blob BookPicture { get; set; }
 
 }

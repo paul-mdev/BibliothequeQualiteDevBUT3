@@ -21,12 +21,12 @@ namespace BibliothequeQualiteDev.Server.Controllers
 
             Console.WriteLine("ifjebvhjijfnvkjn");
 
-            Console.WriteLine(_db.BookRepository.Count());
+            Console.WriteLine(_db.BOOK.Count());
 
-            return new[] {new BookModel(), new BookModel() };
+           // return new[] {new BookModel(), new BookModel() };
 
             // Charge toutes les lignes de la table WeatherRecords
-            return await _db.BookRepository.ToListAsync();
+            return await _db.BOOK.ToListAsync();
         }
 
 

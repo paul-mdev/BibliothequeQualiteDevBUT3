@@ -2,17 +2,19 @@ using Microsoft.EntityFrameworkCore;
 
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) {
-
-        Console.WriteLine("teest");
-        BookRepository.Add(new BookModel());
-
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    {
     }
 
-    public DbSet<BookModel> BookRepository => Set<BookModel>();
+    public DbSet<BookModel> BOOK => Set<BookModel>();
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<BookModel>()
+            .HasKey(b => b.book_id); // Explicit primary key
 
-
-
+        base.OnModelCreating(modelBuilder);
+    }
 
 }
+
