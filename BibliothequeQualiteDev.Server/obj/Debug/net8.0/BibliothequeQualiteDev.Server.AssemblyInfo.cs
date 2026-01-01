@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BibliothequeQualiteDev.Server")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+493f5766eac43a25a03df308d6ad20df8d71a9dd")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+397397c5fc8bb39e80fe83bd5b63ff42b44e3383")]
 [assembly: System.Reflection.AssemblyProductAttribute("BibliothequeQualiteDev.Server")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BibliothequeQualiteDev.Server")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
