@@ -4,13 +4,17 @@ import Statistiques from '../pages/PageStatistiques.vue'
 import Livre from '../pages/PageLivre.vue'
 import Login from '../pages/PageLogin.vue'
 import Parametres from '../pages/PageParametres.vue'
+import Gestion from '../pages/PageGestion.vue'
+
 
 const routes = [
   { path: '/', component: Accueil },
   { path: '/statistiques', component: Statistiques },
   { path: '/livre/:id', component: Livre },
   { path: '/login', component: Login },
-  { path: '/parametres', component: Parametres }
+  { path: '/parametres', component: Parametres },
+  { path: '/gestion', component: Gestion },
+
 
 
 ]

@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Data;
 
 namespace BibliothequeQualiteDev.Server.Controllers
 {
@@ -30,11 +32,26 @@ namespace BibliothequeQualiteDev.Server.Controllers
         [HttpGet("{id}")]
         public IActionResult GetBook(int id)
         {
-            Console.WriteLine("zaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
             var book = _db.BOOK.Find(id);
             if (book == null) return NotFound();
             return Ok(book);
         }
+
+
+        [HttpDelete("{id}")]
+        public IActionResult DeleteBook(int id)
+        {
+            var book = _db.BOOK.FirstOrDefault(b => b.book_id == id);
+            if (book == null) return NotFound();
+
+            // Suppression directe, la cascade supprime le stock et les emprunts liés
+            _db.BOOK.Remove(book);
+            _db.SaveChanges();
+
+            return NoContent();
+        }
+
+
 
 
     }
