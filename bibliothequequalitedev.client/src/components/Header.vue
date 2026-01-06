@@ -4,6 +4,8 @@
       <ul>
         <li><router-link to="/">Accueil</router-link></li>
         <li><router-link to="/statistiques">Statistiques</router-link></li>
+        <li><router-link to="/parametres">Paramètres</router-link></li>
+
       </ul>
     </nav>
   </header>

@@ -50,6 +50,11 @@ export default defineConfig({
             '^/images': {
               target, secure: false,
               changeOrigin: true
+            },
+            '^/auth': {
+              target,
+              changeOrigin: true,
+              secure: false
             }
         },
         port: 5173,

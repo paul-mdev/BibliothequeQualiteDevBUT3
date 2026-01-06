@@ -2,11 +2,11 @@ using System.Reflection.Metadata;
 
 public class UserModel
 {
-    public int Id { get; set; }
-    public string UserName { get; set; } = string.Empty;
-    public string UserPswd { get; set; }
-    public string UserMail { get; set; }
+    public int user_id { get; set; }
+    public string user_name { get; set; } = string.Empty;
+    public string user_pswd { get; set; }
+    public string user_mail { get; set; }
 
-    public int RoleID { get; set; }
+    public int role_id { get; set; }
    
 }
