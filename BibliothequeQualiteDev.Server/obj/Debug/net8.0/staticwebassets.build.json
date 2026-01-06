@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "nW1pD53uLVag1g8LpZGvIWTsQeVxq0381qcLjOHx8r4=",
+  "Hash": "5k2KbBxCVzZKt9rPN8cDcrrFeF/Bo7gmqBwORFBZZgE=",
   "Source": "BibliothequeQualiteDev.Server",
   "BasePath": "_content/BibliothequeQualiteDev.Server",
   "Mode": "Default",
@@ -18,6 +18,34 @@
       "AdditionalBuildPropertiesToRemove": "WebPublishProfileFile;TargetFramework;RuntimeIdentifier;SelfContained"
     }
   ],
-  "DiscoveryPatterns": [],
-  "Assets": []
+  "DiscoveryPatterns": [
+    {
+      "Name": "BibliothequeQualiteDev.Server\\wwwroot",
+      "Source": "BibliothequeQualiteDev.Server",
+      "ContentRoot": "C:\\Users\\Paul\\source\\repos\\BibliothequeQualiteDev\\BibliothequeQualiteDev.Server\\wwwroot\\",
+      "BasePath": "_content/BibliothequeQualiteDev.Server",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "C:\\Users\\Paul\\source\\repos\\BibliothequeQualiteDev\\BibliothequeQualiteDev.Server\\wwwroot\\images\\books\\default_book.png",
+      "SourceId": "BibliothequeQualiteDev.Server",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\Paul\\source\\repos\\BibliothequeQualiteDev\\BibliothequeQualiteDev.Server\\wwwroot\\",
+      "BasePath": "_content/BibliothequeQualiteDev.Server",
+      "RelativePath": "images/books/default_book.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\books\\default_book.png"
+    }
+  ]
 }

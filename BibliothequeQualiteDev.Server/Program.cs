@@ -28,6 +28,9 @@ var app = builder.Build();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
+app.UseRouting();
+
+
 
 // Configure the HTTP request pipeline.
 

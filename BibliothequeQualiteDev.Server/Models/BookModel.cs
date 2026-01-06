@@ -8,7 +8,8 @@ public class BookModel
     public string book_editor { get; set; }
 
     public DateTime book_date { get; set; }
-  //  public Blob BookPicture { get; set; }
+   //public Blob book_picture { get; set; }
+    public string? book_image_ext { get; set; }
 
 }
 

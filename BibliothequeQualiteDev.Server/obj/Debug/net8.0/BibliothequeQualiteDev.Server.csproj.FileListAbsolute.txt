@@ -44,3 +44,4 @@ C:\Users\Paul\source\repos\BibliothequeQualiteDev\BibliothequeQualiteDev.Server\
 C:\Users\Paul\source\repos\BibliothequeQualiteDev\BibliothequeQualiteDev.Server\bin\Debug\net8.0\MySqlConnector.dll
 C:\Users\Paul\source\repos\BibliothequeQualiteDev\BibliothequeQualiteDev.Server\bin\Debug\net8.0\Pomelo.EntityFrameworkCore.MySql.dll
 C:\Users\Paul\source\repos\BibliothequeQualiteDev\BibliothequeQualiteDev.Server\bin\Debug\net8.0\System.Diagnostics.DiagnosticSource.dll
+C:\Users\Paul\source\repos\BibliothequeQualiteDev\BibliothequeQualiteDev.Server\bin\Debug\net8.0\BibliothequeQualiteDev.Server.staticwebassets.runtime.json

@@ -6,7 +6,6 @@ import Livre from '../pages/PageLivre.vue'
 const routes = [
   { path: '/', component: Accueil },
   { path: '/statistiques', component: Statistiques },
- // { path: '/livre', component: Livre },
   { path: '/livre/:id', component: Livre }
 ]
 
