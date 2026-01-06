@@ -7,6 +7,13 @@
 
     <div v-else-if="book">
       <h2>{{ book.book_name }}</h2>
+
+      <!-- Image par défaut -->
+      <img :src="`/images/books/default_book.png`"
+           alt="Couverture par défaut"
+           class="book-image" />
+
+
       <p><strong>Auteur :</strong> {{ book.book_author }}</p>
       <p><strong>Éditeur :</strong> {{ book.book_editor }}</p>
       <p><strong>Date :</strong> {{ new Date(book.book_date).toLocaleDateString() }}</p>
@@ -25,7 +32,7 @@
   export default defineComponent({
     setup() {
       const route = useRoute()
-      const routeId = ref(route.params.id) // <-- afficher l'id
+      const routeId = ref(route.params.id)
       const book = ref(null)
       const loading = ref(false)
 
@@ -47,9 +54,9 @@
       // Chargement initial
       onMounted(() => fetchBook(route.params.id))
 
-      // Recharger si l'ID change (navigation dynamique)
+      // Recharger si l'ID change
       watch(() => route.params.id, (newId) => {
-        routeId.value = newId // <-- mettre à jour l'id affiché
+        routeId.value = newId
         fetchBook(newId)
       })
 
@@ -63,5 +70,11 @@
     max-width: 700px;
     margin: 2rem auto;
     text-align: center;
+  }
+
+  .book-image {
+    max-width: 200px;
+    display: block;
+    margin: 1rem auto;
   }
 </style>

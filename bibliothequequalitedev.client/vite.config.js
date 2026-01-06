@@ -46,6 +46,10 @@ export default defineConfig({
             '^/book': {
                 target,
                 secure: false
+            },
+            '^/images': {
+              target, secure: false,
+              changeOrigin: true
             }
         },
         port: 5173,
