@@ -1,6 +1,6 @@
 using System.Reflection.Metadata;
 
-public class UserModel
+public class UsersModel
 {
     public int user_id { get; set; }
     public string user_name { get; set; } = string.Empty;

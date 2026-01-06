@@ -32,10 +32,15 @@
   // Vérifier si une session existe déjà
   async function fetchMe() {
     try {
-      const res = await fetch(`${api}/me`, { credentials: 'include' })
-      if (!res.ok) return
-      user.value = await res.json()
-    } catch { }
+      const res = await fetch(`${api}/me`, { credentials: 'include' });
+      if (res.ok) {
+        user.value = await res.json();
+      } else if (res.status === 401) {
+        user.value = null; // pas connecté
+      }
+    } catch {
+      user.value = null;
+    }
   }
 
   // Se connecter
@@ -78,7 +83,7 @@
     user.value = null
   }
 
-  onMounted(fetchMe)
+ // onMounted(fetchMe)
 </script>
 
 <style scoped>

@@ -7,7 +7,7 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<BookModel> BOOK => Set<BookModel>();
-    public DbSet<UserModel> USER => Set<UserModel>();
+    public DbSet<UsersModel> USER => Set<UsersModel>();
     public DbSet<BorrowedModel> BORROWED => Set<BorrowedModel>();
     public DbSet<LibraryStockModel> LIBRARY_STOCK => Set<LibraryStockModel>();
 
@@ -17,7 +17,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<BookModel>()
             .HasKey(b => b.book_id); // Explicit primary key
 
-        modelBuilder.Entity<UserModel>()
+        modelBuilder.Entity<UsersModel>()
             .HasKey(u => u.user_id); // Explicit primary key
 
         modelBuilder.Entity<BorrowedModel>()

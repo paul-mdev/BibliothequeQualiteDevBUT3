@@ -11,7 +11,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public IActionResult Register([FromBody] UserModel user)
+    public IActionResult Register([FromBody] UsersModel user)
     {
         if (_db.USER.Any(u => u.user_mail == user.user_mail))
             return BadRequest("Email already exists");
@@ -28,7 +28,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public IActionResult Login([FromBody] UserModel login)
+    public IActionResult Login([FromBody] UsersModel login)
     {
         var user = _db.USER.FirstOrDefault(u => u.user_mail == login.user_mail && u.user_pswd == login.user_pswd);
         if (user == null) return Unauthorized("Invalid email or password");

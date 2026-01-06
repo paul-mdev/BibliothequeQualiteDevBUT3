@@ -1,12 +1,11 @@
-﻿
-services:
+﻿services:
   mysql:
     image: mysql:8.0.36        # version stable et largement utilisée
     container_name: mysql-db
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: mydb
+      MYSQL_DATABASE: bibliotheque
       MYSQL_USER: myuser
       MYSQL_PASSWORD: rootpass
     ports:
@@ -29,7 +28,7 @@ services:
         condition: service_healthy    # ← C’EST ÇA QUI CHANGE TOUT
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=mydb;User=myuser;Password=rootpass;SslMode=none;
+      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=bibliotheque;User=myuser;Password=rootpass;SslMode=none;
     ports:
       - "5000:5000"
       #- "7275:7275"   # si tu utilises les ports aléatoires de Visual Studio

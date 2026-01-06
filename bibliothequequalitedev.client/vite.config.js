@@ -41,22 +41,24 @@ export default defineConfig({
             '@': fileURLToPath(new URL('./src', import.meta.url))
         }
     },
+
+
+
     server: {
         proxy: {
-            '^/book': {
-                target,
-                secure: false
-            },
-            '^/images': {
-              target, secure: false,
-              changeOrigin: true
-            },
-            '^/auth': {
-              target,
-              changeOrigin: true,
-              secure: false
-            }
+          '^/book': { target, secure: false, changeOrigin: true, rewrite: (path) => path },
+          '^/images': { target, secure: false, changeOrigin: true, rewrite: (path) => path },
+          '^/auth': {
+            target,
+            secure: false,
+            changeOrigin: true,
+            rewrite: (path) => path  // conserve exactement le chemin original
+          },
         },
+ 
+
+
+
         port: 5173,
         https: {
             key: fs.readFileSync(keyFilePath),

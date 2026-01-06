@@ -2,21 +2,12 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// Add services
 builder.Services.AddControllers();
-
-
-// Base de données
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        new MySqlServerVersion(new Version(8, 0, 34)),
-        mySqlOptions => mySqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 20,
-            maxRetryDelay: TimeSpan.FromSeconds(5),
-            errorNumbersToAdd: null
-        )
+        new MySqlServerVersion(new Version(8, 0, 34))
     )
 );
 
@@ -27,26 +18,35 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromHours(1);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Important pour SameSite=None en HTTPS
+    options.Cookie.SameSite = SameSiteMode.None; // Permet l'envoi cross-site avec credentials: include
+});
+
+
+// CORS pour Vite
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
 });
 
 
 var app = builder.Build();
-app.UseSession();
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
-app.UseRouting();
-
-
-
-// Configure the HTTP request pipeline.
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
 
+app.UseCors("AllowFrontend"); // <-- autoriser le front
+app.UseSession();             // <-- session avant l'authorization
 app.UseAuthorization();
 
 app.MapControllers();
-
 app.MapFallbackToFile("/index.html");
 
 app.Run();
