@@ -1,7 +1,6 @@
-﻿
-services:
+﻿services:
   mysql:
-    image: mysql:8.0.36        # version stable et largement utilisée
+    image: mysql:8.0.36
     container_name: mysql-db
     restart: unless-stopped
     environment:
@@ -15,10 +14,11 @@ services:
       - db_data:/var/lib/mysql
       - ./init:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpass"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
+        test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -prootpass || exit 1"]
+        interval: 10s
+        timeout: 10s
+        retries: 30
+        start_period: 30s
 
   api:
     build: .
@@ -26,13 +26,12 @@ services:
     restart: unless-stopped
     depends_on:
       mysql:
-        condition: service_healthy    # ← C’EST ÇA QUI CHANGE TOUT
+        condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=mydb;User=myuser;Password=rootpass;SslMode=none;
+      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=bibliotheque;User=myuser;Password=rootpass;SslMode=none;
     ports:
       - "5000:5000"
-      #- "7275:7275"   # si tu utilises les ports aléatoires de Visual Studio
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
