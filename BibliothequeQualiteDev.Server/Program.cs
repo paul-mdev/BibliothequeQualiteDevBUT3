@@ -63,3 +63,24 @@ app.MapControllers();
 app.MapFallbackToFile("/index.html");
 
 app.Run();
+using var scope = app.Services.CreateScope();
+var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+// Appliquer les migrations automatiquement (optionnel mais pratique en dev)
+db.Database.Migrate();
+
+// Seeding d'un admin si la table est vide
+if (!await db.USER.AnyAsync())
+{
+    var hashedPassword = "admin123";
+
+    await db.USER.AddAsync(new UsersModel
+    {
+        user_name = "Administrateur",
+        user_mail = "admin@bibliotheque.com",
+        user_pswd = hashedPassword,
+        role_id = 1 // Assume que 1 = rôle admin
+    });
+
+    await db.SaveChangesAsync();
+}

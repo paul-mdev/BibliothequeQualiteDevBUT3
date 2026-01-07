@@ -6,10 +6,12 @@
 
 <style scoped>
   .site-footer {
-    background-color: #1f2937;
-    color: white;
+    background: var(--color-background-soft);
+    color: var(--color-text);
     text-align: center;
-    padding: 1rem;
+    padding: 1.5rem 1rem;
     font-size: 0.9rem;
+    border-top: 1px solid var(--color-border);
+    margin-top: auto; /* Important pour un layout flex sur App.vue */
   }
 </style>
