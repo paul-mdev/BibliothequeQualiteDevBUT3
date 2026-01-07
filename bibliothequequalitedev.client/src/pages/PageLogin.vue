@@ -1,6 +1,6 @@
 <template>
   <div class="login-page">
-    <h1>Login / Register</h1>
+    <h1>Connexion / Inscription</h1>
 
     <div v-if="!user">
       <input v-model="user_mail" placeholder="Adresse email" />

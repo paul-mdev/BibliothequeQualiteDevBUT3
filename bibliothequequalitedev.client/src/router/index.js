@@ -11,7 +11,7 @@ import GestionUtilisateur from '../pages/PageGestionUtilisateur.vue'
 import Compte from '../pages/PageCompte.vue'
 
 // ✅ Import du store
-import { userState, fetchUser } from '@/stores/user'
+import { userState, fetchUser, hasRight } from '@/stores/user'
 
 const routes = [
   { path: '/', component: Accueil },
@@ -19,11 +19,29 @@ const routes = [
   { path: '/livre/:id', component: Livre },
   { path: '/login', component: Login },
   { path: '/parametres', component: Parametres },
-  { path: '/gestion/livres', component: Gestion, meta: { requiresAdmin: true } },
-  { path: '/book/new', component: AjouterLivre },
-  { path: '/livre/edit/:id', component: ModifierLivre },
-  { path: '/gestion/utilisateurs', component: GestionUtilisateur, meta: { requiresAdmin: true } },
   { path: '/compte', component: Compte },
+
+  // ⭐ Routes protégées par droits
+  {
+    path: '/gestion/livres',
+    component: Gestion,
+    meta: { requiresRight: 'gerer_livres' }
+  },
+  {
+    path: '/book/new',
+    component: AjouterLivre,
+    meta: { requiresRight: 'gerer_livres' }
+  },
+  {
+    path: '/livre/edit/:id',
+    component: ModifierLivre,
+    meta: { requiresRight: 'gerer_livres' }
+  },
+  {
+    path: '/gestion/utilisateurs',
+    component: GestionUtilisateur,
+    meta: { requiresRight: 'gerer_utilisateurs' }
+  },
 ]
 
 const router = createRouter({
@@ -32,44 +50,48 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
-  console.log('[ROUTER GUARD] Tentative d\'accès à :', to.path)
+  console.log('[ROUTER GUARD] 🚀 Tentative d\'accès à :', to.path)
 
-  // Pages publiques (login)
+  // ✅ Page login toujours accessible
   if (to.path === '/login') {
-    console.log('[ROUTER GUARD] Page login → accès autorisé')
+    console.log('[ROUTER GUARD] ✅ Page login → accès autorisé')
     return next()
   }
 
   try {
-    // ✅ Met à jour le store une fois
+    // ✅ Récupérer les infos utilisateur
     await fetchUser()
-    console.log('[ROUTER GUARD] Store utilisateur :', userState)
+    console.log('[ROUTER GUARD] 👤 Utilisateur :', userState.user?.user_name)
+    console.log('[ROUTER GUARD] 🔑 Droits :', userState.rights)
 
-    // Non connecté → redirection login
+    // ❌ Non connecté → redirection login
     if (!userState.isLoggedIn) {
-      console.log('[ROUTER GUARD] Non connecté → redirection login')
+      console.log('[ROUTER GUARD] ❌ Non connecté → redirection login')
       return next({
         path: '/login',
         query: { redirect: to.fullPath }
       })
     }
 
-    // Vérifier si la route nécessite admin
-    if (to.meta.requiresAdmin) {
-      console.log(`[ROUTER GUARD] Page admin requise, rôle actuel : ${userState.user?.role?.role_name}`)
+    // ⭐ Vérifier si la route nécessite un droit spécifique
+    if (to.meta.requiresRight) {
+      const requiredRight = to.meta.requiresRight
+      console.log(`[ROUTER GUARD] 🔒 Droit requis : "${requiredRight}"`)
 
-      if (!userState.isAdmin) {
-        console.log('[ROUTER GUARD] Accès refusé → redirection accueil')
-        alert('Accès refusé : vous devez être administrateur')
+      if (!hasRight(requiredRight)) {
+        console.log(`[ROUTER GUARD] ❌ Droit manquant → redirection accueil`)
+        alert(`Accès refusé : vous n'avez pas le droit "${requiredRight}"`)
         return next('/')
       }
+
+      console.log(`[ROUTER GUARD] ✅ Droit "${requiredRight}" présent`)
     }
 
-    console.log('[ROUTER GUARD] Accès autorisé')
+    console.log('[ROUTER GUARD] ✅ Accès autorisé')
     next()
   } catch (err) {
-    console.error('[ROUTER GUARD] Erreur :', err)
-    next({
+    console.error('[ROUTER GUARD] ⚠️ Erreur :', err)
+    return next({
       path: '/login',
       query: { redirect: to.fullPath }
     })

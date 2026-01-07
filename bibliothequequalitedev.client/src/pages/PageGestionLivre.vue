@@ -1,8 +1,7 @@
 <template>
-  <div class="gestion-page">
+  <div v-if="hasRight('gerer_livres')" class="gestion-page">
     <h1>Gestion des livres</h1>
-
-    <p v-if="user">Bienvenue {{ user.user_mail }}, vous pouvez gérer les livres.</p>
+    <p>Bienvenue {{ userState.user?.user_name }}, vous pouvez gérer les livres.</p>
 
     <button @click="addBook">Ajouter un livre</button>
 
@@ -33,42 +32,60 @@
       </tbody>
     </table>
   </div>
+
+
 </template>
 
 <script setup>
   import { ref, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
+  import { userState, fetchUser, hasRight } from '../stores/user'
 
   const router = useRouter()
-  const user = ref(null)
   const books = ref([])
+  const loading = ref(true)
 
-  // Charger l'utilisateur et les livres
-  const fetchUser = async () => {
-    const res = await fetch('/auth/me', { credentials: 'include' })
-    if (!res.ok) return router.push('/login') // pas connecté => redirection
-    user.value = await res.json()
+  const fetchCurrentUser = async () => {
+    try {
+      await fetchUser()
+
+      if (!hasRight('gerer_livres')) {
+        alert('Accès refusé : vous n\'avez pas le droit de gérer les livres')
+        router.push('/')
+      }
+    } catch (err) {
+      console.error('Erreur récupération utilisateur:', err)
+      router.push('/login')
+    } finally {
+      loading.value = false
+    }
   }
 
   const fetchBooks = async () => {
-    const res = await fetch('/book')
-    if (!res.ok) return
-    books.value = await res.json()
+    const res = await fetch('/book', { credentials: 'include' })
+    if (res.ok) books.value = await res.json()
+  }
+
+  const deleteBook = async (id) => {
+    if (!confirm('Supprimer ce livre ?')) return
+    const res = await fetch(`/book/${id}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    })
+    if (res.ok) await fetchBooks()
+    else alert('Erreur suppression')
+  }
+
+  const formatDate = (dateStr) => {
+    return new Date(dateStr).toLocaleDateString('fr-FR')
   }
 
   onMounted(async () => {
-    await fetchUser()
-    await fetchBooks()
+    await fetchCurrentUser()
+    if (hasRight('gerer_livres')) {
+      await fetchBooks()
+    }
   })
-
-  // Fonctions simples pour gérer les livres
-  const addBook = () => router.push('/book/new')
-  const editBook = (id) => router.push(`/livre/edit/${id}`)
-  const deleteBook = async (id) => {
-    if (!confirm('Supprimer ce livre ?')) return
-    await fetch(`/book/${id}`, { method: 'DELETE' })
-    books.value = books.value.filter(b => b.book_id !== id)
-  }
 </script>
 
 <style scoped>
