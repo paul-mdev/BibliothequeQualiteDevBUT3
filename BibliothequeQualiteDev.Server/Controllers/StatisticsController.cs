@@ -56,13 +56,17 @@ public class StatisticsController : ControllerBase
 
         // Optionnel : répartition du stock (disponible / emprunté / total)
         // Tu peux ajouter cela si tu veux l'afficher dans les stats
+        // Optionnel : répartition du stock (disponible / emprunté / total)
         dto.StockByState = new List<StockByState>
         {
             new StockByState { StateId = 1, Count = await _db.LIBRARY_STOCK.SumAsync(s => s.total_stock) },
             new StockByState { StateId = 2, Count = await _db.LIBRARY_STOCK.SumAsync(s => s.borrowed_count) },
-            new StockByState { StateId = 3, Count = await _db.LIBRARY_STOCK.SumAsync(s => s.AvailableCount) }
+            new StockByState
+            {
+                StateId = 3,
+                Count = await _db.LIBRARY_STOCK.SumAsync(s => s.total_stock - s.borrowed_count)
+            }
         };
-
         return Ok(dto);
     }
 }

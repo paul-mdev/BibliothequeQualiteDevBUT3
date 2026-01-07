@@ -28,8 +28,8 @@ public class UsersBorrowedController : ControllerBase
         // On récupère les emprunts + le stock + le livre associé
         var borrowed = await (
             from b in _db.BORROWED
-            join s in _db.LIBRARY_STOCK on b.stock_id equals s.stock_id
-            join bk in _db.BOOK on s.book_id equals bk.book_id
+           
+            join bk in _db.BOOK on b.book_id equals bk.book_id
             where b.user_id == userId
             select new
             {

@@ -60,6 +60,9 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<DelayModel>()
             .HasKey(d => d.delay_id);
 
+        modelBuilder.Entity<LibraryStockModel>()
+            .HasKey(d => d.book_id);
+
         // Relation : LIBRARY_STOCK 1:1 avec BOOK
         modelBuilder.Entity<LibraryStockModel>()
             .HasOne<BookModel>()
