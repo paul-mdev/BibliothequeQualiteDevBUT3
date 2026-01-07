@@ -14,12 +14,11 @@ L’objectif est de concevoir et développer une application web permettant d’
 
 # Accès : 
 
- **Application : http://localhost:5173**
- **API (Swagger si activé) : http://localhost:5000**
- **Base de données : port 3306 (user: myuser / pass: rootpass)**
+ -  **Application : http://localhost:5173**
 
 ## Lancement du projet 
  -  ```docker compose up -d --build```
+ -  
    dans dosier BibliothequeQualiteDev.Server
 ## Stoper le projet
  -  ```docker compose down -v```
