@@ -45,7 +45,9 @@ export default defineConfig({
 
 
     server: {
-        proxy: {
+      proxy: {
+          '^/users': { target, secure: false, changeOrigin: true, rewrite: (path) => path },
+          '^/roles': { target, secure: false, changeOrigin: true, rewrite: (path) => path },
           '^/book': { target, secure: false, changeOrigin: true, rewrite: (path) => path },
           '^/images': { target, secure: false, changeOrigin: true, rewrite: (path) => path },
           '^/auth': {
