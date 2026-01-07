@@ -21,24 +21,36 @@
 
 <script setup>
   import { ref, onMounted } from 'vue'
+  import { useRouter } from 'vue-router'
+
+  const router = useRouter()
 
   const user_mail = ref('')
   const user_pswd = ref('')
   const user = ref(null)
   const error = ref('')
 
-  const api = '/auth' // proxy vers ASP.NET Core
+  const api = '/auth'
 
-  // Vérifier si une session existe déjà
   async function fetchMe() {
     try {
-      const res = await fetch(`${api}/me`, { credentials: 'include' })
-      if (!res.ok) return
-      user.value = await res.json()
-    } catch { }
+      const res = await fetch(`${api}/me`, {
+        credentials: 'include'
+      })
+
+      if (res.ok) {
+        user.value = await res.json()
+      } else {
+        user.value = null
+      }
+    } catch {
+      user.value = null
+    }
   }
 
-  // Se connecter
+  onMounted(fetchMe)
+
+  // LOGIN
   async function login() {
     error.value = ''
     try {
@@ -46,16 +58,22 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ user_mail: user_mail.value, user_pswd: user_pswd.value })
+        body: JSON.stringify({
+          user_mail: user_mail.value,
+          user_pswd: user_pswd.value
+        })
       })
+
       if (!res.ok) throw new Error(await res.text())
+
       user.value = await res.json()
+      router.push('/')
     } catch (err) {
       error.value = err.message
     }
   }
 
-  // Créer un compte
+  // REGISTER
   async function register() {
     error.value = ''
     try {
@@ -63,23 +81,31 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ user_mail: user_mail.value, user_pswd: user_pswd.value })
+        body: JSON.stringify({
+          user_mail: user_mail.value,
+          user_pswd: user_pswd.value
+        })
       })
+
       if (!res.ok) throw new Error(await res.text())
+
       user.value = await res.json()
+      router.push('/')
     } catch (err) {
       error.value = err.message
     }
   }
 
-  // Se déconnecter
+  // LOGOUT
   async function logout() {
-    await fetch(`${api}/logout`, { method: 'POST', credentials: 'include' })
+    await fetch(`${api}/logout`, {
+      method: 'POST',
+      credentials: 'include'
+    })
     user.value = null
   }
-
-  onMounted(fetchMe)
 </script>
+
 
 <style scoped>
   .login-page {

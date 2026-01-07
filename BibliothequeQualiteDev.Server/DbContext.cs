@@ -17,7 +17,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<BookModel>()
             .HasKey(b => b.book_id); // Explicit primary key
 
-        modelBuilder.Entity<UserModel>()
+        modelBuilder.Entity<UsersModel>()
             .HasKey(u => u.user_id); // Explicit primary key
 
         modelBuilder.Entity<BorrowedModel>()
@@ -25,6 +25,10 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<LibraryStockModel>()
             .HasKey(b => b.stock_id); // Explicit primary key
+
+        modelBuilder.Entity<RolesModel>()
+            .HasKey(r => r.role_id); // Explicit primary key
+
 
         base.OnModelCreating(modelBuilder);
     }

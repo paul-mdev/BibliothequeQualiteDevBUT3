@@ -18,6 +18,8 @@
           <th>Nom</th>
           <th>Auteur</th>
           <th>Éditeur</th>
+          <th>Date</th>
+
         </tr>
       </thead>
       <tbody>
@@ -29,6 +31,7 @@
           <td>{{ book.book_name }}</td>
           <td>{{ book.book_author }}</td>
           <td>{{ book.book_editor }}</td>
+          <td>{{ new Date(book.book_date).toLocaleDateString() }}</td>
         </tr>
       </tbody>
     </table>
