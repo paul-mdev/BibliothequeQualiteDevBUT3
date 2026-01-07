@@ -1,5 +1,9 @@
 <template>
-  <div v-if="hasRight('gerer_livres')" class="gestion-page">
+  <div v-if="loading">
+    <p>Chargement...</p>
+  </div>
+
+  <div v-else-if="hasRight('gerer_livres')" class="gestion-page">
     <h1>Gestion des livres</h1>
     <p>Bienvenue {{ userState.user?.user_name }}, vous pouvez gérer les livres.</p>
 
@@ -23,7 +27,6 @@
           <td>{{ b.book_author }}</td>
           <td>{{ b.book_editor }}</td>
           <td>{{ new Date(b.book_date).toLocaleDateString() }}</td>
-
           <td>
             <button @click="editBook(b.book_id)">Modifier</button>
             <button @click="deleteBook(b.book_id)">Supprimer</button>
@@ -33,18 +36,21 @@
     </table>
   </div>
 
-
+  <div v-else>
+    <p>Vous n'avez pas les droits pour accéder à cette page.</p>
+  </div>
 </template>
 
 <script setup>
   import { ref, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
-  import { userState, fetchUser, hasRight } from '../stores/user'
+  import { userState, fetchUser, hasRight } from '@/stores/user'
 
   const router = useRouter()
   const books = ref([])
   const loading = ref(true)
 
+  // Récupération de l'utilisateur connecté
   const fetchCurrentUser = async () => {
     try {
       await fetchUser()
@@ -52,37 +58,65 @@
       if (!hasRight('gerer_livres')) {
         alert('Accès refusé : vous n\'avez pas le droit de gérer les livres')
         router.push('/')
+        return false
       }
+      return true
     } catch (err) {
       console.error('Erreur récupération utilisateur:', err)
       router.push('/login')
+      return false
     } finally {
       loading.value = false
     }
   }
 
+  // Récupération des livres
   const fetchBooks = async () => {
-    const res = await fetch('/book', { credentials: 'include' })
-    if (res.ok) books.value = await res.json()
+    try {
+      const res = await fetch('/book', { credentials: 'include' })
+      if (res.ok) {
+        books.value = await res.json()
+        console.log('📚 Livres chargés:', books.value.length)
+      }
+    } catch (err) {
+      console.error('Erreur fetchBooks:', err)
+    }
+  }
+
+  // Actions sur les livres
+  const addBook = () => {
+    router.push('/book/new')
+  }
+
+  const editBook = (id) => {
+    router.push(`/livre/edit/${id}`)
   }
 
   const deleteBook = async (id) => {
     if (!confirm('Supprimer ce livre ?')) return
-    const res = await fetch(`/book/${id}`, {
-      method: 'DELETE',
-      credentials: 'include'
-    })
-    if (res.ok) await fetchBooks()
-    else alert('Erreur suppression')
+
+    try {
+      const res = await fetch(`/book/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+
+      if (res.ok) {
+        await fetchBooks()
+        console.log('✅ Livre supprimé')
+      } else {
+        alert('Erreur suppression')
+      }
+    } catch (err) {
+      console.error('Erreur deleteBook:', err)
+      alert('Erreur lors de la suppression')
+    }
   }
 
-  const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleDateString('fr-FR')
-  }
-
+  // Montage du composant
   onMounted(async () => {
-    await fetchCurrentUser()
-    if (hasRight('gerer_livres')) {
+    const hasAccess = await fetchCurrentUser()
+    if (hasAccess) {
       await fetchBooks()
     }
   })
@@ -108,5 +142,11 @@
 
   button {
     margin: 0 0.25rem;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
   }
+
+    button:hover {
+      opacity: 0.8;
+    }
 </style>

@@ -13,7 +13,7 @@
         <li v-if="hasGererUtilisateurs">
           <router-link to="/gestion/utilisateurs">Gestion des utilisateurs</router-link>
         </li>
-        <li v-if="isAdmin">
+        <li v-if="hasGererLivres">
           <router-link to="/gestion/emprunts">Gestion des emprunts</router-link>
         </li>
 
@@ -40,6 +40,9 @@
   const isLoggedIn = computed(() => userState.isLoggedIn)
   const hasGererLivres = computed(() => hasRight('gerer_livres'))
   const hasGererUtilisateurs = computed(() => hasRight('gerer_utilisateurs'))
+  //const hasGererEmprunts = computed(() => hasRight('gerer_emprunts'))
+
+  
 
   const logout = async () => {
     try {
