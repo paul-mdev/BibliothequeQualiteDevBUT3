@@ -18,7 +18,7 @@ L’objectif est de concevoir et développer une application web permettant d’
 
 ## Lancement du projet 
  -  ```docker compose up -d --build```  
-   (dans dosier BibliothequeQualiteDev.Server)
-## Stoper le projet
- -  ```docker compose down -v``` (Si besoin de netoyer la bd)
+   (dans dosier Racine)
+## Stopper le projet
+ -  ```docker compose down -v``` (Si besoin de nettoyer la bd)
  -  ```docker compose down``` (Recommandé)
