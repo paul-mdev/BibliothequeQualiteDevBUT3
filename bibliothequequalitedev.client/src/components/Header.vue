@@ -6,6 +6,8 @@
         <li><router-link to="/statistiques">Statistiques</router-link></li>
         <li><router-link to="/parametres">Paramètres</router-link></li>
         <li><router-link to="/gestion">Gestion</router-link></li>
+        <li><router-link to="/login">Connexion</router-link></li>
+
 
 
       </ul>

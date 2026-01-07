@@ -6,6 +6,7 @@ import Login from '../pages/PageLogin.vue'
 import Parametres from '../pages/PageParametres.vue'
 import Gestion from '../pages/PageGestion.vue'
 import AjouterLivre from '../pages/PageAjouterLivre.vue'
+import ModifierLivre from '../pages/PageModifierLivre.vue'
 
 
 const routes = [
@@ -16,6 +17,8 @@ const routes = [
   { path: '/parametres', component: Parametres },
   { path: '/gestion', component: Gestion },
   { path: '/book/new', component: AjouterLivre },
+  { path: '/livre/edit/:id', component: ModifierLivre },
+
 ]
 
 const router = createRouter({

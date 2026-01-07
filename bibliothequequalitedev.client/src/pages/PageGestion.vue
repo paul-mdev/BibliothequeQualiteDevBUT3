@@ -13,6 +13,7 @@
           <th>Nom</th>
           <th>Auteur</th>
           <th>Éditeur</th>
+          <th>Date</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -22,6 +23,8 @@
           <td>{{ b.book_name }}</td>
           <td>{{ b.book_author }}</td>
           <td>{{ b.book_editor }}</td>
+          <td>{{ new Date(b.book_date).toLocaleDateString() }}</td>
+
           <td>
             <button @click="editBook(b.book_id)">Modifier</button>
             <button @click="deleteBook(b.book_id)">Supprimer</button>
@@ -60,7 +63,7 @@
 
   // Fonctions simples pour gérer les livres
   const addBook = () => router.push('/book/new')
-  const editBook = (id) => router.push(`/book/edit/${id}`)
+  const editBook = (id) => router.push(`/livre/edit/${id}`)
   const deleteBook = async (id) => {
     if (!confirm('Supprimer ce livre ?')) return
     await fetch(`/book/${id}`, { method: 'DELETE' })
