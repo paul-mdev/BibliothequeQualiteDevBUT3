@@ -4,9 +4,10 @@ import Statistiques from '../pages/PageStatistiques.vue'
 import Livre from '../pages/PageLivre.vue'
 import Login from '../pages/PageLogin.vue'
 import Parametres from '../pages/PageParametres.vue'
-import Gestion from '../pages/PageGestion.vue'
+import Gestion from '../pages/PageGestionLivre.vue'
 import AjouterLivre from '../pages/PageAjouterLivre.vue'
 import ModifierLivre from '../pages/PageModifierLivre.vue'
+import GestionUtilisateur from '../pages/PageGestionUtilisateur.vue'
 
 
 const routes = [
@@ -15,9 +16,10 @@ const routes = [
   { path: '/livre/:id', component: Livre },
   { path: '/login', component: Login },
   { path: '/parametres', component: Parametres },
-  { path: '/gestion', component: Gestion },
+  { path: '/gestion/livres', component: Gestion },
   { path: '/book/new', component: AjouterLivre },
   { path: '/livre/edit/:id', component: ModifierLivre },
+  { path: '/gestion/utilisateurs/', component: GestionUtilisateur },
 
 ]
 

@@ -2,7 +2,7 @@ using System.Reflection.Metadata;
 
 public class RolesModel
 {
-    public int Id { get; set; }
-    public string RoleName { get; set; } = string.Empty;
+    public int role_id { get; set; }
+    public string role_name { get; set; } = string.Empty;
 
 }
