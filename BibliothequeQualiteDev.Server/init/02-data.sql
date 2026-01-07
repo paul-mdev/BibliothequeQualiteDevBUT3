@@ -21,6 +21,9 @@ INSERT INTO ROLE_RIGHTS VALUES
 
 -- USERS
 INSERT INTO USERS VALUES
-(1,'$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','Alice','alice@biblio.fr',1);
+
+(1,'$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','Alice','alice@biblio.fr',1),
+(2,'1','Admin','admin@test.fr',1)
+;
 
 SET FOREIGN_KEY_CHECKS=1;
