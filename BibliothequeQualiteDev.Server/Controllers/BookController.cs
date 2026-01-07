@@ -151,7 +151,7 @@ namespace BibliothequeQualiteDev.Server.Controllers
                 user_id = userId.Value,
                 book_id = id,
                 date_start = DateTime.Today,
-                date_end = DateTime.Today.AddDays(21),
+                date_end = DateTime.Today.AddDays(60),
                 is_returned = false
             };
 

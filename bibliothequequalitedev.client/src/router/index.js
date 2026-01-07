@@ -9,6 +9,7 @@ import AjouterLivre from '../pages/PageAjouterLivre.vue'
 import ModifierLivre from '../pages/PageModifierLivre.vue'
 import GestionUtilisateur from '../pages/PageGestionUtilisateur.vue'
 import Compte from '../pages/PageCompte.vue'
+import Emprunts from '../pages/PageGestionEmprunts.vue'
 
 // ✅ Import du store
 import { userState, fetchUser, hasRight } from '@/stores/user'
@@ -42,6 +43,8 @@ const routes = [
     component: GestionUtilisateur,
     meta: { requiresRight: 'gerer_utilisateurs' }
   },
+  { path: '/gestion/emprunts', component: Emprunts},
+
 ]
 
 const router = createRouter({
