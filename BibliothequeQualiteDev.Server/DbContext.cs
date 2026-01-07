@@ -7,7 +7,7 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<BookModel> BOOK => Set<BookModel>();
-    public DbSet<UserModel> USER => Set<UserModel>();
+    public DbSet<UserModel> USERS => Set<UserModel>();
     public DbSet<BorrowedModel> BORROWED => Set<BorrowedModel>();
     public DbSet<LibraryStockModel> LIBRARY_STOCK => Set<LibraryStockModel>();
 

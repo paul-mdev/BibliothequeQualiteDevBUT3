@@ -13,11 +13,11 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public IActionResult Register([FromBody] UserModel user)
     {
-        if (_db.USER.Any(u => u.user_mail == user.user_mail))
+        if (_db.USERS.Any(u => u.user_mail == user.user_mail))
             return BadRequest("Email already exists");
 
         user.role_id = 1; // rôle par défaut
-        _db.USER.Add(user);
+        _db.USERS.Add(user);
         _db.SaveChanges();
 
         // session
@@ -30,7 +30,7 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public IActionResult Login([FromBody] UserModel login)
     {
-        var user = _db.USER.FirstOrDefault(u => u.user_mail == login.user_mail && u.user_pswd == login.user_pswd);
+        var user = _db.USERS.FirstOrDefault(u => u.user_mail == login.user_mail && u.user_pswd == login.user_pswd);
         if (user == null) return Unauthorized("Invalid email or password");
 
         HttpContext.Session.SetInt32("user_id", user.user_id);
