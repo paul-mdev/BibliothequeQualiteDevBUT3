@@ -1,0 +1,56 @@
+﻿services:
+  mysql:
+    image: mysql:8.0.36
+    container_name: mysql-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: bibliotheque
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: rootpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./BibliothequeQualiteDev.Server/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpass", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s   # Donne 30 secondes avant de commencer les checks
+
+  api:
+    build:
+      context: ./BibliothequeQualiteDev.Server
+      dockerfile: Dockerfile
+    container_name: bibliotheque-api
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=bibliotheque;User=myuser;Password=rootpass;AllowPublicKeyRetrieval=True;SslMode=None
+    ports:
+      - "5000:5000"
+    volumes:
+      - dataprotection_keys:/root/.aspnet/DataProtection-Keys
+
+  client:
+    build:
+      context: ./bibliothequequalitedev.client
+      dockerfile: Dockerfile
+    container_name: bibliotheque-client
+    restart: unless-stopped
+    environment:
+      - DOCKER=true
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+
+volumes:
+  db_data:
+  dataprotection_keys:

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using BibliothequeQualiteDev.Server.Models;
+
 public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
@@ -14,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<LibraryStockModel> LIBRARY_STOCK => Set<LibraryStockModel>();
     public DbSet<RightsModel> RIGHTS => Set<RightsModel>();
     public DbSet<RoleRightsModel> ROLE_RIGHTS => Set<RoleRightsModel>();
+    public DbSet<DelayModel> DELAY => Set<DelayModel>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,11 +26,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<UsersModel>()
             .HasKey(u => u.user_id);
 
-        modelBuilder.Entity<BorrowedModel>()
-            .HasKey(b => b.id_borrow);
 
-        modelBuilder.Entity<LibraryStockModel>()
-            .HasKey(ls => ls.stock_id);
 
         modelBuilder.Entity<RolesModel>()
             .HasKey(r => r.role_id);
@@ -59,7 +57,33 @@ public class AppDbContext : DbContext
             .HasForeignKey(u => u.role_id)
             .OnDelete(DeleteBehavior.Restrict); // Évite la suppression en cascade
 
+        modelBuilder.Entity<DelayModel>()
+            .HasKey(d => d.delay_id);
+
+        // Relation : LIBRARY_STOCK 1:1 avec BOOK
+        modelBuilder.Entity<LibraryStockModel>()
+            .HasOne<BookModel>()
+            .WithOne()
+            .HasForeignKey<LibraryStockModel>(s => s.book_id)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<BorrowedModel>()
+            .HasKey(b => b.id_borrow);
+
+
+        // Relation : BORROWED → BOOK (directement via book_id)
+        modelBuilder.Entity<BorrowedModel>()
+            .HasOne<BookModel>()
+            .WithMany()
+            .HasForeignKey(b => b.book_id);
+      
+
+        // Contrainte d'unicité : un utilisateur ne peut avoir qu'un emprunt actif par livre
+        modelBuilder.Entity<BorrowedModel>()
+            .HasIndex(b => new { b.user_id, b.book_id, b.is_returned })
+            .IsUnique()
+            .HasFilter("[is_returned] = 0"); // Seulement pour les non retournés
+
         base.OnModelCreating(modelBuilder);
     }
 }
-

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,9 +37,21 @@ builder.Services.AddCors(options =>
 });
 
 
+builder.Services.AddHealthChecks(); // ajouter
+
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(@"/root/.aspnet/DataProtection-Keys"));
+
 var app = builder.Build();
 
-app.UseHttpsRedirection();
+app.MapHealthChecks("/health"); // expose /health
+
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+//app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 

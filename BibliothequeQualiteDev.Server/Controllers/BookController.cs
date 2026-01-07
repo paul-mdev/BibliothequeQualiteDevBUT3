@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System.Data;
 
 namespace BibliothequeQualiteDev.Server.Controllers
 {
@@ -9,7 +7,6 @@ namespace BibliothequeQualiteDev.Server.Controllers
     [Route("[controller]")]
     public class BookController : ControllerBase
     {
-
         private readonly AppDbContext _db;
 
         public BookController(AppDbContext db)
@@ -20,15 +17,9 @@ namespace BibliothequeQualiteDev.Server.Controllers
         [HttpGet]
         public async Task<IEnumerable<BookModel>> Get()
         {
-
-            //Console.WriteLine(_db.BOOK.Count());
-
-            // Charge toutes les lignes de la table WeatherRecords
             return await _db.BOOK.ToListAsync();
         }
 
-
-        // GET /book/2
         [HttpGet("{id}")]
         public IActionResult GetBook(int id)
         {
@@ -37,6 +28,140 @@ namespace BibliothequeQualiteDev.Server.Controllers
             return Ok(book);
         }
 
+        // Endpoint pour compter les exemplaires disponibles
+        [HttpGet("{id}/available-count")]
+        public async Task<IActionResult> GetAvailableCount(int id)
+        {
+            var stock = await _db.LIBRARY_STOCK.FirstOrDefaultAsync(s => s.book_id == id);
+            if (stock == null) return Ok(0);
+            return Ok(stock.AvailableCount);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddBook([FromForm] BookUploadModel model)
+        {
+            var book = new BookModel
+            {
+                book_name = model.book_name ?? string.Empty,
+                book_author = model.book_author ?? string.Empty,
+                book_editor = model.book_editor ?? string.Empty,
+                book_date = model.book_date
+            };
+
+            _db.BOOK.Add(book);
+            await _db.SaveChangesAsync(); // ID généré ici
+
+            // Gestion de l'image
+            if (model.image != null && model.image.Length > 0)
+            {
+                var ext = Path.GetExtension(model.image.FileName);
+                book.book_image_ext = ext;
+
+                var dir = Path.Combine("wwwroot", "images", "books");
+                Directory.CreateDirectory(dir);
+                var path = Path.Combine(dir, $"{book.book_id}{ext}");
+
+                using var stream = new FileStream(path, FileMode.Create);
+                await model.image.CopyToAsync(stream);
+
+                await _db.SaveChangesAsync();
+            }
+
+            // Ajout des exemplaires en stock
+            int quantity = model.quantity > 0 ? model.quantity : 1;
+
+            _db.LIBRARY_STOCK.Add(new LibraryStockModel
+            {
+                book_id = book.book_id,
+                total_stock = quantity,
+                borrowed_count = 0
+            });
+
+            await _db.SaveChangesAsync();
+            return Ok(book);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateBook(int id, [FromForm] BookUpdateDto dto, IFormFile? image)
+        {
+            var book = await _db.BOOK.FindAsync(id);
+            if (book == null) return NotFound();
+
+            book.book_name = dto.book_name ?? book.book_name;
+            book.book_author = dto.book_author ?? book.book_author;
+            book.book_editor = dto.book_editor ?? book.book_editor;
+            book.book_date = dto.book_date;
+
+            // Gestion image
+            if (image != null && image.Length > 0)
+            {
+                var ext = Path.GetExtension(image.FileName).TrimStart('.');
+                var imagesPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "books");
+                Directory.CreateDirectory(imagesPath);
+                var filePath = Path.Combine(imagesPath, $"{book.book_id}.{ext}");
+
+                using var stream = new FileStream(filePath, FileMode.Create);
+                await image.CopyToAsync(stream);
+
+                book.book_image_ext = "." + ext;
+            }
+
+            // Ajout d'exemplaires supplémentaires
+            if (dto.quantity > 0)
+            {
+                var stock = await _db.LIBRARY_STOCK.FirstOrDefaultAsync(s => s.book_id == id);
+                if (stock == null)
+                {
+                    stock = new LibraryStockModel { book_id = id, total_stock = dto.quantity };
+                    _db.LIBRARY_STOCK.Add(stock);
+                }
+                else
+                {
+                    stock.total_stock += dto.quantity;
+                }
+            }
+
+            await _db.SaveChangesAsync();
+            return NoContent();
+
+            await _db.SaveChangesAsync();
+            return NoContent();
+        }
+
+        [HttpPost("{id}/borrow")]
+        public async Task<IActionResult> BorrowBook(int id)
+        {
+            var userId = HttpContext.Session.GetInt32("user_id");
+            if (!userId.HasValue) return Unauthorized("Connectez-vous pour emprunter.");
+
+            // Vérifier si l'utilisateur a déjà emprunté ce livre (non rendu)
+            var existingBorrow = await _db.BORROWED
+                .FirstOrDefaultAsync(b => b.user_id == userId.Value &&
+                                         b.book_id == id &&
+                                         !b.is_returned);
+            if (existingBorrow != null)
+                return BadRequest("Vous avez déjà emprunté ce livre.");
+
+            var stock = await _db.LIBRARY_STOCK.FirstOrDefaultAsync(s => s.book_id == id);
+            if (stock == null || stock.AvailableCount <= 0)
+                return BadRequest("Aucun exemplaire disponible.");
+
+            var borrow = new BorrowedModel
+            {
+                user_id = userId.Value,
+                book_id = id,
+                date_start = DateTime.Today,
+                date_end = DateTime.Today.AddDays(21),
+                is_returned = false
+            };
+
+            _db.BORROWED.Add(borrow);
+            stock.borrowed_count += 1; // Incrémenter le compteur
+
+            await _db.SaveChangesAsync();
+
+            return Ok(new { message = "Livre emprunté avec succès !" });
+        }
 
         [HttpDelete("{id}")]
         public IActionResult DeleteBook(int id)
@@ -44,123 +169,29 @@ namespace BibliothequeQualiteDev.Server.Controllers
             var book = _db.BOOK.FirstOrDefault(b => b.book_id == id);
             if (book == null) return NotFound();
 
-            // Suppression directe, la cascade supprime le stock et les emprunts liés
             _db.BOOK.Remove(book);
             _db.SaveChanges();
-
             return NoContent();
         }
 
-        [HttpPost]
-        public async Task<IActionResult> AddBook([FromForm] BookUploadModel model)
-        {
-            Console.WriteLine("AddBook");
-            var book = new BookModel
-            {
-                book_name = model.book_name,
-                book_author = model.book_author,
-                book_editor = model.book_editor,
-                book_date = model.book_date
-            };
-
-            _db.BOOK.Add(book);
-            Console.WriteLine("ajoute en base");
-            await _db.SaveChangesAsync(); // ⬅️ ID généré ICI
-
-            if (model.image != null && model.image.Length > 0)
-            {
-                var ext = Path.GetExtension(model.image.FileName);
-                book.book_image_ext = ext;
-
-                var dir = Path.Combine("wwwroot/images/books");
-                Directory.CreateDirectory(dir);
-                Console.WriteLine("créé le chemin");
-
-                var path = Path.Combine(dir, $"{book.book_id}{ext}");
-                Console.WriteLine(path);
-
-                using var stream = new FileStream(path, FileMode.Create);
-                await model.image.CopyToAsync(stream);
-
-                await _db.SaveChangesAsync();
-                Console.WriteLine("changement effectué");
-
-            }
-
-            return Ok(book);
-        }
-
-
-
-        // Classe pour recevoir le formulaire
+        // DTOs
         public class BookUploadModel
         {
-            public string book_name { get; set; }
-            public string book_author { get; set; }
-            public string book_editor { get; set; }
+            public string? book_name { get; set; }
+            public string? book_author { get; set; }
+            public string? book_editor { get; set; }
             public DateTime book_date { get; set; }
-
             public IFormFile? image { get; set; }
+            public int quantity { get; set; } = 1;
         }
-
-
-
-
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBook(
-            int id,
-            [FromForm] BookUpdateDto dto,
-            IFormFile? image
-        )
-        {
-            var book = await _db.BOOK.FindAsync(id);
-            if (book == null)
-                return NotFound();
-
-            // Mise à jour des champs simples
-            book.book_name = dto.book_name;
-            book.book_author = dto.book_author;
-            book.book_editor = dto.book_editor;
-            book.book_date = dto.book_date;
-
-            // Gestion image (optionnelle)
-            if (image != null && image.Length > 0)
-            {
-                var ext = Path.GetExtension(image.FileName).TrimStart('.');
-                var imagesPath = Path.Combine(
-                    Directory.GetCurrentDirectory(),
-                    "wwwroot",
-                    "images",
-                    "books"
-                );
-
-                Directory.CreateDirectory(imagesPath);
-
-                var filePath = Path.Combine(imagesPath, $"{book.book_id}.{ext}");
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await image.CopyToAsync(stream);
-                }
-
-                book.book_image_ext = "." + ext;
-            }
-
-            await _db.SaveChangesAsync();
-            return NoContent();
-        }
-
 
         public class BookUpdateDto
         {
-            public string book_name { get; set; } = string.Empty;
-            public string book_author { get; set; } = string.Empty;
-            public string book_editor { get; set; } = string.Empty;
+            public string? book_name { get; set; }
+            public string? book_author { get; set; }
+            public string? book_editor { get; set; }
             public DateTime book_date { get; set; }
-
+            public int quantity { get; set; } = 0;
         }
-
-
     }
 }
