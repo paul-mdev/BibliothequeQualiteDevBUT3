@@ -17,7 +17,7 @@ public class UsersController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<UsersModel>>> GetUsers()
     {
-        var users = await _db.USER.ToListAsync();
+        var users = await _db.USERS.ToListAsync();
         return Ok(users);
     }
 
@@ -25,7 +25,7 @@ public class UsersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<UsersModel>> GetUser(int id)
     {
-        var user = await _db.USER.FindAsync(id);
+        var user = await _db.USERS.FindAsync(id);
         if (user == null) return NotFound();
         return Ok(user);
     }
@@ -40,7 +40,7 @@ public class UsersController : ControllerBase
         // Hash du mot de passe
         user.user_pswd = BCrypt.Net.BCrypt.HashPassword(user.user_pswd);
 
-        _db.USER.Add(user);
+        _db.USERS.Add(user);
         await _db.SaveChangesAsync();
         return CreatedAtAction(nameof(GetUser), new { id = user.user_id }, user);
     }
@@ -49,7 +49,7 @@ public class UsersController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] UsersModel updatedUser)
     {
-        var user = await _db.USER.FindAsync(id);
+        var user = await _db.USERS.FindAsync(id);
         if (user == null) return NotFound();
 
         user.user_name = updatedUser.user_name;
@@ -70,10 +70,10 @@ public class UsersController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(int id)
     {
-        var user = await _db.USER.FindAsync(id);
+        var user = await _db.USERS.FindAsync(id);
         if (user == null) return NotFound();
 
-        _db.USER.Remove(user);
+        _db.USERS.Remove(user);
         await _db.SaveChangesAsync();
         return NoContent();
     }
