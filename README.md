@@ -17,8 +17,8 @@ L’objectif est de concevoir et développer une application web permettant d’
  -  **Application : http://localhost:5173**
 
 ## Lancement du projet 
- -  ```docker compose up -d --build```
- -  
-   dans dosier BibliothequeQualiteDev.Server
+ -  ```docker compose up -d --build```  
+   (dans dosier BibliothequeQualiteDev.Server)
 ## Stoper le projet
- -  ```docker compose down -v```
+ -  ```docker compose down -v``` (Si besoin de netoyer la bd)
+ -  ```docker compose down``` (Recommandé)
