@@ -1,6 +1,5 @@
 ## **Projet universitaire – BUT 3 – Qualité de Développement**  
 **Date de rendu** : 31/12/2025 (prolongation au 07/01/2026)  
-**Branche stable pour le rendu** : 
 
 **Équipe** (groupe de 3 étudiants) :
 - Bustamante Thomas
@@ -20,7 +19,7 @@ L’objectif est de concevoir et développer une application web permettant d’
  **Base de données : port 3306 (user: myuser / pass: rootpass)**
 
 ## Lancement du projet 
- -  docker compose up -d --build
-   dans fichier BibliothequeQualiteDev.Server
+ -  ```docker compose up -d --build```
+   dans dosier BibliothequeQualiteDev.Server
 ## Stoper le projet
- -  docker compose down -v
+ -  ```docker compose down -v```
