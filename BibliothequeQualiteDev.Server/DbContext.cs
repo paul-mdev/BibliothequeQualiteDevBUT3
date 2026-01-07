@@ -8,6 +8,8 @@ public class AppDbContext : DbContext
 
     public DbSet<BookModel> BOOK => Set<BookModel>();
     public DbSet<UsersModel> USER => Set<UsersModel>();
+    public DbSet<RolesModel> ROLE => Set<RolesModel>();
+
     public DbSet<BorrowedModel> BORROWED => Set<BorrowedModel>();
     public DbSet<LibraryStockModel> LIBRARY_STOCK => Set<LibraryStockModel>();
 
@@ -25,6 +27,10 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<LibraryStockModel>()
             .HasKey(b => b.stock_id); // Explicit primary key
+
+        modelBuilder.Entity<RolesModel>()
+            .HasKey(r => r.role_id); // Explicit primary key
+
 
         base.OnModelCreating(modelBuilder);
     }
