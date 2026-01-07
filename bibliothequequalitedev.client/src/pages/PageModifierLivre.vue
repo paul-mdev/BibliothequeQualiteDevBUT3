@@ -30,6 +30,7 @@
     formData.append('book_author', data.book_author)
     formData.append('book_editor', data.book_editor)
     formData.append('book_date', data.book_date)
+    formData.append('quantity', data.quantity)
     if (data.file) formData.append('image', data.file)
 
     await fetch(`/book/${route.params.id}`, {

@@ -36,6 +36,9 @@
         <li v-if="isAdmin">
           <router-link to="/gestion/utilisateurs">Gestion des utilisateurs</router-link>
         </li>
+        <li v-if="isAdmin">
+          <router-link to="/gestion/emprunts">Gestion des emprunts</router-link>
+        </li>
 
         <li v-if="!isLoggedIn">
           <router-link to="/login">Connexion</router-link>

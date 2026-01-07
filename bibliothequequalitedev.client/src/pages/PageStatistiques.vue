@@ -2,17 +2,18 @@
   <div class="statistics-page">
     <h1>Tableau de Bord - Statistiques</h1>
 
-    <div v-if="loading">Chargement des statistiques...</div>
-    <div v-else-if="error">Erreur : {{ error }}</div>
+    <div v-if="loading" class="loading">Chargement des statistiques...</div>
+    <div v-else-if="error" class="error">Erreur : {{ error }}</div>
+
     <div v-else>
-      <!-- Cartes pour stats simples -->
+      <!-- Cartes statistiques -->
       <div class="stats-grid">
         <div class="stat-card">
           <h3>Livres totaux</h3>
           <p>{{ stats.totalBooks }}</p>
         </div>
         <div class="stat-card">
-          <h3>Utilisateurs totaux</h3>
+          <h3>Utilisateurs</h3>
           <p>{{ stats.totalUsers }}</p>
         </div>
         <div class="stat-card">
@@ -24,78 +25,86 @@
           <p>{{ stats.currentBorrowings }}</p>
         </div>
         <div class="stat-card">
-          <h3>Retards totaux</h3>
+          <h3>Retards</h3>
           <p>{{ stats.totalDelays }}</p>
         </div>
         <div class="stat-card">
           <h3>Taux de retard</h3>
-          <p>{{ stats.delayRate.toFixed(2) }}%</p>
+          <p>{{ stats.delayRate.toFixed(2) }} %</p>
         </div>
       </div>
 
-      <!-- Graphique pour livres populaires -->
-      <h2>Livres les plus populaires</h2>
-      <BarChart v-if="popularBooksData.labels.length > 0" :chartData="popularBooksData" :options="chartOptions" />
-
-      <!-- Tableau pour stock par état -->
+      <!-- Graphique Top 15 livres les plus empruntés -->
+      <h2>Top 15 des livres les plus empruntés</h2>
+      <div class="chart-container">
+        <Bar v-if="popularBooksData.labels.length > 0"
+             :data="popularBooksData"
+             :options="chartOptions" />
+        <p v-else class="no-data">Aucun emprunt enregistré.</p>
+      </div>
     </div>
   </div>
 </template>
 
-<script>
-import axios from 'axios';
-import { Bar } from 'vue-chartjs';
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
+<script setup>
+  import { ref, computed, onMounted } from 'vue'
+  import { Bar } from 'vue-chartjs' // ← Import correct
+  import {
+    Chart as ChartJS,
+    Title,
+    Tooltip,
+    Legend,
+    BarElement,
+    CategoryScale,
+    LinearScale
+  } from 'chart.js'
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
+  ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 
-export default {
-  components: {
-    BarChart: Bar
-  },
-  data() {
-    return {
-      stats: {
-        totalBooks: 0,
-        totalUsers: 0,
-        totalBorrowings: 0,
-        currentBorrowings: 0,
-        totalDelays: 0,
-        delayRate: 0,
-        popularBooks: []
-      },
-      loading: true,
-      error: null,
-      chartOptions: {
-        responsive: true,
-        maintainAspectRatio: false
+  const stats = ref({})
+  const loading = ref(true)
+  const error = ref(null)
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { stepSize: 1 }
       }
-    };
-  },
-  computed: {
-    popularBooksData() {
-      return {
-        labels: this.stats.popularBooks.map(book => book.bookName),
-        datasets: [{
-          label: 'Nombre d\'emprunts',
-          backgroundColor: '#42A5F5',
-          data: this.stats.popularBooks.map(book => book.borrowCount)
-        }]
-      };
     }
-  },
-  async mounted() {
+  }
+
+  const popularBooksData = computed(() => {
+    const books = stats.value.popularBooks || []
+    return {
+      labels: books.map(b => b.bookName),
+      datasets: [{
+        label: 'Nombre d\'emprunts',
+        data: books.map(b => b.borrowCount),
+        backgroundColor: '#42A5F5',
+        borderColor: '#1E88E5',
+        borderWidth: 1
+      }]
+    }
+  })
+
+  onMounted(async () => {
     try {
-      const response = await axios.get('/statistics'); // Adaptez l'URL si proxy ou base URL configurée
-      this.stats = response.data;
+      const res = await fetch('/statistics')
+      if (!res.ok) throw new Error()
+      stats.value = await res.json()
     } catch (err) {
-      this.error = 'Impossible de charger les statistiques.';
-      console.error(err);
+      console.error(err)
+      error.value = 'Impossible de charger les statistiques.'
     } finally {
-      this.loading = false;
+      loading.value = false
     }
-  },
-};
+  })
 </script>
 
 <style scoped>
@@ -105,7 +114,6 @@ export default {
     margin: 0 auto;
   }
 
-  /* Grille responsive pour les cartes */
   .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -113,83 +121,49 @@ export default {
     margin-bottom: 40px;
   }
 
-  /* Cartes avec fond contrasté et texte lisible en dark/light mode */
   .stat-card {
-    background-color: var(--card-bg, #ffffff); /* blanc en light mode */
-    color: var(--text-primary, #333333); /* texte sombre en light */
+    background: var(--card-bg, #fff);
+    color: var(--text-primary, #333);
     padding: 24px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     text-align: center;
-    transition: transform 0.2s;
   }
 
-    .stat-card:hover {
-      transform: translateY(-4px);
+    .stat-card h3 {
+      margin: 0 0 12px;
+      font-size: 1.1rem;
+      opacity: 0.8;
     }
 
-  /* En mode sombre : on inverse les couleurs */
+    .stat-card p {
+      margin: 0;
+      font-size: 2.5rem;
+      font-weight: bold;
+    }
+
+  .chart-container {
+    position: relative;
+    height: 500px;
+    margin: 40px 0;
+    background: var(--card-bg, #fff);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .no-data {
+    text-align: center;
+    color: #888;
+    padding: 40px;
+    font-style: italic;
+  }
+
   @media (prefers-color-scheme: dark) {
-    .stat-card {
-      background-color: var(--card-bg-dark, #2d3748); /* gris bleu foncé */
-      color: var(--text-primary-dark, #f7fafc); /* texte clair */
+    .stat-card,
+    .chart-container {
+      background: #2d3748;
+      color: #f7fafc;
     }
-  }
-
-  /* Titres et valeurs */
-  .stat-card h3 {
-    margin: 0 0 12px 0;
-    font-size: 1.1rem;
-    opacity: 0.8;
-    color: inherit;
-  }
-
-  .stat-card p {
-    margin: 0;
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: inherit;
-  }
-
-  /* Tableau */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    background-color: var(--card-bg, #ffffff);
-    color: var(--text-primary, #333333);
-  }
-
-  th, td {
-    border: 1px solid #e2e8f0;
-    padding: 12px;
-    text-align: left;
-  }
-
-  th {
-    background-color: #edf2f7;
-    font-weight: 600;
-  }
-
-  /* Adaptation dark mode pour le tableau */
-  @media (prefers-color-scheme: dark) {
-    table {
-      background-color: var(--card-bg-dark, #2d3748);
-      color: var(--text-primary-dark, #f7fafc);
-    }
-
-    th {
-      background-color: #4a5568;
-    }
-
-    th, td {
-      border-color: #4a5568;
-    }
-  }
-
-  h2 {
-    margin-top: 40px;
-    margin-bottom: 20px;
-    color: inherit;
   }
 </style>

@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS BORROWED (
     is_returned TINYINT(1) DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES USERS(user_id),
     FOREIGN KEY (book_id) REFERENCES BOOK(book_id),
-    UNIQUE KEY unique_active_borrow (user_id, book_id, is_returned)
+    INDEX idx_active_borrow (user_id, book_id, is_returned)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS DELAY (

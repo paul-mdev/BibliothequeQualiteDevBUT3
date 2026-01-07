@@ -45,6 +45,11 @@ export default defineConfig(({ command }) => {
           target: isDocker ? 'http://api:5000' : undefined,
           changeOrigin: true
         }
+        ,
+        '^/borrow': {
+          target: isDocker ? 'http://api:5000' : undefined,
+          changeOrigin: true
+        },
       }
     }
   }
