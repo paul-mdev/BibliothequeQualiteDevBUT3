@@ -3,13 +3,13 @@ SET FOREIGN_KEY_CHECKS=0;
 
 -- STATES
 INSERT INTO STATES VALUES
-(1,'Neuf'),(2,'Très bon état'),(3,'Bon état'),
-(4,'État moyen'),(5,'Mauvais état'),(6,'Perdu');
+(1,'Neuf'),(2,'Très bon etat'),(3,'Bon etat'),
+(4,'État moyen'),(5,'Mauvais etat'),(6,'Perdu');
 
 -- ROLES
 INSERT INTO ROLES VALUES
-(1,'Administrateur'),(2,'Bibliothécaire'),
-(3,'Étudiant'),(4,'Professeur');
+(1,'Administrateur'),(2,'Bibliothecaire'),
+(3,'Etudiant'),(4,'Professeur');
 
 -- RIGHTS
 INSERT INTO RIGHTS VALUES
