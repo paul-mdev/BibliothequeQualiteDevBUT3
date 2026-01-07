@@ -38,7 +38,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+//app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
