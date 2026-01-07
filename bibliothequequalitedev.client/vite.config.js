@@ -1,70 +1,38 @@
-import { fileURLToPath, URL } from 'node:url';
+import { fileURLToPath, URL } from 'node:url'
+import { defineConfig } from 'vite'
+import plugin from '@vitejs/plugin-vue'
 
-import { defineConfig } from 'vite';
-import plugin from '@vitejs/plugin-vue';
-import fs from 'fs';
-import path from 'path';
-import child_process from 'child_process';
-import { env } from 'process';
+export default defineConfig(({ command }) => {
+  const isDocker = process.env.DOCKER === 'true'
 
-const baseFolder =
-    env.APPDATA !== undefined && env.APPDATA !== ''
-        ? `${env.APPDATA}/ASP.NET/https`
-        : `${env.HOME}/.aspnet/https`;
-
-const certificateName = "bibliothequequalitedev.client";
-const certFilePath = path.join(baseFolder, `${certificateName}.pem`);
-const keyFilePath = path.join(baseFolder, `${certificateName}.key`);
-
-if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
-    if (0 !== child_process.spawnSync('dotnet', [
-        'dev-certs',
-        'https',
-        '--export-path',
-        certFilePath,
-        '--format',
-        'Pem',
-        '--no-password',
-    ], { stdio: 'inherit', }).status) {
-        throw new Error("Could not create certificate.");
-    }
-}
-
-const target = env.ASPNETCORE_HTTPS_PORT ? `https://localhost:${env.ASPNETCORE_HTTPS_PORT}` :
-    env.ASPNETCORE_URLS ? env.ASPNETCORE_URLS.split(';')[0] : 'https://localhost:7275';
-
-// https://vitejs.dev/config/
-export default defineConfig({
+  return {
     plugins: [plugin()],
     resolve: {
-        alias: {
-            '@': fileURLToPath(new URL('./src', import.meta.url))
-        }
+      alias: {
+        '@': fileURLToPath(new URL('./src', import.meta.url))
+      }
     },
 
 
 
     server: {
+      host: true,
+      port: 5173,
+      https: isDocker ? false : true,
       proxy: {
-          '^/users': { target, secure: false, changeOrigin: true, rewrite: (path) => path },
-          '^/roles': { target, secure: false, changeOrigin: true, rewrite: (path) => path },
-          '^/book': { target, secure: false, changeOrigin: true, rewrite: (path) => path },
-          '^/images': { target, secure: false, changeOrigin: true, rewrite: (path) => path },
-          '^/auth': {
-            target,
-            secure: false,
-            changeOrigin: true,
-            rewrite: (path) => path  // conserve exactement le chemin original
-          },
+        '^/book': {
+          target: isDocker ? 'http://api:5000' : undefined,
+          changeOrigin: true
         },
- 
-
-
-
-        port: 5173,
-        https: {
-            key: fs.readFileSync(keyFilePath),
-            cert: fs.readFileSync(certFilePath),
+        '^/images': {
+          target: isDocker ? 'http://api:5000' : undefined,
+          changeOrigin: true
+        },
+        '^/auth': {
+          target: isDocker ? 'http://api:5000' : undefined,
+          changeOrigin: true
         }
+      }
     }
+  }
 })
