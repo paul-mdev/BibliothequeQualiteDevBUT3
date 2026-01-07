@@ -29,7 +29,7 @@ export default defineConfig(({ command }) => {
           changeOrigin: true
         },
         '^/auth': {
-          target: isDocker ? 'http://api:5000' : undefined,
+          target: isDocker ? 'http://api:5000' : undefined, 
           changeOrigin: true
         }
       }

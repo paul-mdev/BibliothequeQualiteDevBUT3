@@ -14,11 +14,11 @@
       - db_data:/var/lib/mysql
       - ./BibliothequeQualiteDev.Server/init:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -prootpass || exit 1"]
-      interval: 10s
-      timeout: 10s
-      retries: 30
-      start_period: 30s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpass", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s   # Donne 30 secondes avant de commencer les checks
 
   api:
     build:
@@ -32,7 +32,7 @@
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
-      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=bibliotheque;User=myuser;Password=rootpass;SslMode=none;
+      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=bibliotheque;User=myuser;Password=rootpass;AllowPublicKeyRetrieval=True;SslMode=None
     ports:
       - "5000:5000"
     volumes:
