@@ -1,15 +1,10 @@
 USE bibliotheque;
 SET FOREIGN_KEY_CHECKS=0;
 
--- STATES
-INSERT INTO STATES VALUES
-(1,'Neuf'),(2,'Très bon état'),(3,'Bon état'),
-(4,'État moyen'),(5,'Mauvais état'),(6,'Perdu');
-
 -- ROLES
 INSERT INTO ROLES VALUES
-(1,'Administrateur'),(2,'Bibliothécaire'),
-(3,'Étudiant'),(4,'Professeur');
+(1,'Administrateur'),(2,'Bibliothecaire'),
+(3,'Etudiant'),(4,'Professeur');
 
 -- RIGHTS
 INSERT INTO RIGHTS VALUES
@@ -26,6 +21,9 @@ INSERT INTO ROLE_RIGHTS VALUES
 
 -- USERS
 INSERT INTO USERS VALUES
-(1,'$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','Alice','alice@biblio.fr',1);
+
+(1,'$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','Alice','alice@biblio.fr',1),
+(2,'1','Admin','admin@test.fr',1)
+;
 
 SET FOREIGN_KEY_CHECKS=1;

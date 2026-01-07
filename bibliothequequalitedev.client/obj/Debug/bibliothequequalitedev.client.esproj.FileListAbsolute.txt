@@ -1,2 +1,1 @@
 C:\Users\Paul\source\repos\BibliothequeQualiteDev\bibliothequequalitedev.client\obj\Debug\bibliothequequalitedev.client.esproj.CoreCompileInputs.cache
-C:\Users\rapha\BibliothequeQualiteDevBUT3\bibliothequequalitedev.client\obj\Debug\bibliothequequalitedev.client.esproj.CoreCompileInputs.cache

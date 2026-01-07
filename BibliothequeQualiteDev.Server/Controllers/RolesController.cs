@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using BibliothequeQualiteDev.Server.Models;
+
 using System.Data;
 
 [ApiController]

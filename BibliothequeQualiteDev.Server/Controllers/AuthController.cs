@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using BibliothequeQualiteDev.Server.Models;
+using Microsoft.EntityFrameworkCore;
+
 
 [ApiController]
 [Route("[controller]")]
@@ -39,13 +42,41 @@ public class AuthController : ControllerBase
         return Ok(new { user.user_id, user.user_mail });
     }
 
-    [HttpGet("me")]
-    public IActionResult Me()
+    public class UserMeDto
     {
-        var id = HttpContext.Session.GetInt32("user_id");
-        var email = HttpContext.Session.GetString("user_mail");
-        if (id == null) return Unauthorized();
-        return Ok(new { user_id = id, user_mail = email });
+        public int user_id { get; set; }
+        public string user_mail { get; set; }
+        public string role_name { get; set; }
+        public List<string> rights { get; set; }
+       
+    }
+    [HttpGet("me")]
+    public async Task<IActionResult> Me()
+    {
+        var userId = HttpContext.Session.GetInt32("user_id");
+        if (userId == null) return Unauthorized();
+
+
+        var user = await _db.USERS
+            .Include(u => u.role)          // charge le rôle
+            .ThenInclude(r => r.role_rights) // charge les droits du rôle
+            .ThenInclude(rr => rr.right)
+            .FirstOrDefaultAsync(u => u.user_id == userId);
+
+        if (user == null) return Unauthorized();
+
+        return Ok(new
+        {
+            user.user_id,
+            user.user_mail,
+            user.user_name,
+            role = new
+            {
+                user.role.role_id,
+                user.role.role_name,
+                rights = user.role.role_rights.Select(rr => rr.right.right_name).ToList()
+            }
+        });
     }
 
 

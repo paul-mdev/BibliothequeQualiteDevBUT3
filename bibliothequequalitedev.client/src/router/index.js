@@ -8,7 +8,10 @@ import Gestion from '../pages/PageGestionLivre.vue'
 import AjouterLivre from '../pages/PageAjouterLivre.vue'
 import ModifierLivre from '../pages/PageModifierLivre.vue'
 import GestionUtilisateur from '../pages/PageGestionUtilisateur.vue'
+import Compte from '../pages/PageCompte.vue'
 
+// ✅ Import du store
+import { userState, fetchUser } from '@/stores/user'
 
 const routes = [
   { path: '/', component: Accueil },
@@ -16,11 +19,11 @@ const routes = [
   { path: '/livre/:id', component: Livre },
   { path: '/login', component: Login },
   { path: '/parametres', component: Parametres },
-  { path: '/gestion/livres', component: Gestion },
+  { path: '/gestion/livres', component: Gestion, meta: { requiresAdmin: true } },
   { path: '/book/new', component: AjouterLivre },
   { path: '/livre/edit/:id', component: ModifierLivre },
-  { path: '/gestion/utilisateurs/', component: GestionUtilisateur },
-
+  { path: '/gestion/utilisateurs', component: GestionUtilisateur, meta: { requiresAdmin: true } },
+  { path: '/compte', component: Compte },
 ]
 
 const router = createRouter({
@@ -29,38 +32,48 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
-  // Si on va vers /login → on laisse passer sans aucune vérification
+  console.log('[ROUTER GUARD] Tentative d\'accès à :', to.path)
+
+  // Pages publiques (login)
   if (to.path === '/login') {
-    return next();
+    console.log('[ROUTER GUARD] Page login → accès autorisé')
+    return next()
   }
 
-  // Pour toutes les autres routes → on vérifie la session
   try {
-    const res = await fetch('/auth/me', { credentials: 'include' });
+    // ✅ Met à jour le store une fois
+    await fetchUser()
+    console.log('[ROUTER GUARD] Store utilisateur :', userState)
 
-    // 401 = pas de session valide
-    if (res.status === 401) {
-      throw new Error('Non connecté');
+    // Non connecté → redirection login
+    if (!userState.isLoggedIn) {
+      console.log('[ROUTER GUARD] Non connecté → redirection login')
+      return next({
+        path: '/login',
+        query: { redirect: to.fullPath }
+      })
     }
 
-    if (!res.ok) {
-      throw new Error('Erreur serveur');
+    // Vérifier si la route nécessite admin
+    if (to.meta.requiresAdmin) {
+      console.log(`[ROUTER GUARD] Page admin requise, rôle actuel : ${userState.user?.role?.role_name}`)
+
+      if (!userState.isAdmin) {
+        console.log('[ROUTER GUARD] Accès refusé → redirection accueil')
+        alert('Accès refusé : vous devez être administrateur')
+        return next('/')
+      }
     }
 
-    const user = await res.json();
-    if (!user || !user.user_id) {
-      throw new Error('Non connecté');
-    }
-
-    // Tout bon → accès autorisé
-    next();
+    console.log('[ROUTER GUARD] Accès autorisé')
+    next()
   } catch (err) {
-    console.log(err)
-    // Redirection vers login avec le chemin d'origine
+    console.error('[ROUTER GUARD] Erreur :', err)
     next({
       path: '/login',
       query: { redirect: to.fullPath }
-    });
+    })
   }
-});
+})
+
 export default router
