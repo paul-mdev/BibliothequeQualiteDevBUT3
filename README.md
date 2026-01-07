@@ -1,4 +1,4 @@
-**Projet universitaire – BUT 3 – Qualité de Développement**  
+## **Projet universitaire – BUT 3 – Qualité de Développement**  
 **Date de rendu** : 31/12/2025 (prolongation au 07/01/2026)  
 **Branche stable pour le rendu** : 
 
@@ -15,9 +15,9 @@ L’objectif est de concevoir et développer une application web permettant d’
 
 # Accès :
 
-## Application : http://localhost:5173
-## API (Swagger si activé) : http://localhost:5000
-## Base de données : port 3306 (user: myuser / pass: rootpass)
+ **Application : http://localhost:5173**
+ **API (Swagger si activé) : http://localhost:5000**
+ **Base de données : port 3306 (user: myuser / pass: rootpass)**
 
 ## Lancement du projet 
  -  docker compose up -d --build
