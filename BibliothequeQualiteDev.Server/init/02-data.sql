@@ -1,11 +1,6 @@
 USE bibliotheque;
 SET FOREIGN_KEY_CHECKS=0;
 
--- STATES
-INSERT INTO STATES VALUES
-(1,'Neuf'),(2,'Très bon etat'),(3,'Bon etat'),
-(4,'État moyen'),(5,'Mauvais etat'),(6,'Perdu');
-
 -- ROLES
 INSERT INTO ROLES VALUES
 (1,'Administrateur'),(2,'Bibliothecaire'),

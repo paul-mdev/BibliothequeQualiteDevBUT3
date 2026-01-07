@@ -38,21 +38,6 @@
       <BarChart v-if="popularBooksData.labels.length > 0" :chartData="popularBooksData" :options="chartOptions" />
 
       <!-- Tableau pour stock par état -->
-      <h2>Stock par état</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>État</th>
-            <th>Nombre de livres</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="stock in stats.stockByState" :key="stock.stateId">
-            <td>{{ getStateName(stock.stateId) }}</td>
-            <td>{{ stock.count }}</td>
-          </tr>
-        </tbody>
-      </table>
     </div>
   </div>
 </template>
@@ -77,8 +62,7 @@ export default {
         currentBorrowings: 0,
         totalDelays: 0,
         delayRate: 0,
-        popularBooks: [],
-        stockByState: []
+        popularBooks: []
       },
       loading: true,
       error: null,
@@ -111,20 +95,6 @@ export default {
       this.loading = false;
     }
   },
-  methods: {
-    getStateName(stateId) {
-      // Mappez les IDs d'états (de votre table STATES)
-      const states = {
-        1: 'Neuf',
-        2: 'Très bon état',
-        3: 'Bon état',
-        4: 'État moyen',
-        5: 'Mauvais état',
-        6: 'Perdu'
-      };
-      return states[stateId] || 'Inconnu';
-    }
-  }
 };
 </script>
 

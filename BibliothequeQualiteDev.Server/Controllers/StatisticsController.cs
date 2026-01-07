@@ -1,8 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 [ApiController]
 [Route("[controller]")]
@@ -15,62 +12,62 @@ public class StatisticsController : ControllerBase
         _db = db;
     }
 
-    // GET /statistics
     [HttpGet]
     public async Task<ActionResult<StatisticsDto>> GetStatistics()
     {
         var dto = new StatisticsDto();
 
-        // Nombre total de livres
+        // Nombre total de livres (dans la table BOOK)
         dto.TotalBooks = await _db.BOOK.CountAsync();
 
         // Nombre total d'utilisateurs
         dto.TotalUsers = await _db.USERS.CountAsync();
 
-        // Nombre total d'emprunts
+        // Nombre total d'emprunts (historique)
         dto.TotalBorrowings = await _db.BORROWED.CountAsync();
 
-        // Nombre d'emprunts en cours (non retournés)
+        // Nombre d'emprunts en cours
         dto.CurrentBorrowings = await _db.BORROWED.CountAsync(b => !b.is_returned);
 
-        // Nombre total de retards
+        // Nombre total de retards enregistrés
         dto.TotalDelays = await _db.DELAY.CountAsync();
 
-        // Taux de retard (pourcentage)
-        dto.DelayRate = dto.TotalBorrowings > 0 ? (double)dto.TotalDelays / dto.TotalBorrowings * 100 : 0;
+        // Taux de retard
+        dto.DelayRate = dto.TotalBorrowings > 0
+            ? Math.Round((double)dto.TotalDelays / dto.TotalBorrowings * 100, 2)
+            : 0;
 
-        // Livres les plus populaires (top 10 par nombre d'emprunts)
+        // Livres les plus populaires (top 10 par nombre total d'emprunts)
         dto.PopularBooks = await _db.BORROWED
-            .GroupBy(b => b.stock_id)
-            .Select(g => new { StockId = g.Key, BorrowCount = g.Count() })
-            .Join(_db.LIBRARY_STOCK, g => g.StockId, s => s.stock_id, (g, s) => new { s.book_id, g.BorrowCount })
-            .GroupBy(x => x.book_id)
-            .Select(g => new { BookId = g.Key, TotalBorrowCount = g.Sum(x => x.BorrowCount) })
-            .OrderByDescending(g => g.TotalBorrowCount)
+            .GroupBy(b => b.book_id)
+            .Select(g => new { BookId = g.Key, BorrowCount = g.Count() })
+            .OrderByDescending(g => g.BorrowCount)
             .Take(10)
-            .Join(_db.BOOK, g => g.BookId, b => b.book_id, (g, b) => new BookPopularity
-            {
-                BookId = g.BookId,
-                BookName = b.book_name,
-                BorrowCount = g.TotalBorrowCount
-            })
+            .Join(_db.BOOK,
+                  g => g.BookId,
+                  b => b.book_id,
+                  (g, b) => new BookPopularity
+                  {
+                      BookId = b.book_id,
+                      BookName = b.book_name,
+                      BorrowCount = g.BorrowCount
+                  })
             .ToListAsync();
 
-        // Ajoutez d'autres stats si needed, ex: nombre de livres en stock par état
-        dto.StockByState = await _db.LIBRARY_STOCK
-            .GroupBy(s => s.state_id)
-            .Select(g => new StockByState
-            {
-                StateId = g.Key,
-                Count = g.Count()
-            })
-            .ToListAsync();
+        // Optionnel : répartition du stock (disponible / emprunté / total)
+        // Tu peux ajouter cela si tu veux l'afficher dans les stats
+        dto.StockByState = new List<StockByState>
+        {
+            new StockByState { StateId = 1, Count = await _db.LIBRARY_STOCK.SumAsync(s => s.total_stock) },
+            new StockByState { StateId = 2, Count = await _db.LIBRARY_STOCK.SumAsync(s => s.borrowed_count) },
+            new StockByState { StateId = 3, Count = await _db.LIBRARY_STOCK.SumAsync(s => s.AvailableCount) }
+        };
 
         return Ok(dto);
     }
 }
 
-// DTO pour renvoyer les stats
+// DTOs (inchangés sauf ajout de noms clairs pour StockByState si tu l'utilises)
 public class StatisticsDto
 {
     public int TotalBooks { get; set; }
@@ -78,7 +75,7 @@ public class StatisticsDto
     public int TotalBorrowings { get; set; }
     public int CurrentBorrowings { get; set; }
     public int TotalDelays { get; set; }
-    public double DelayRate { get; set; }
+    public double DelayRate { get; set; } // en pourcentage
     public List<BookPopularity> PopularBooks { get; set; } = new List<BookPopularity>();
     public List<StockByState> StockByState { get; set; } = new List<StockByState>();
 }
@@ -92,6 +89,6 @@ public class BookPopularity
 
 public class StockByState
 {
-    public int StateId { get; set; }
+    public int StateId { get; set; } // 1 = Total exemplaires, 2 = Empruntés, 3 = Disponibles
     public int Count { get; set; }
 }

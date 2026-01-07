@@ -1,45 +1,69 @@
 <template>
   <div class="book-form">
-    <input v-model="localBook.book_name" placeholder="Nom du livre" />
-    <input v-model="localBook.book_author" placeholder="Auteur" />
+    <input v-model="localBook.book_name" placeholder="Nom du livre" required />
+    <input v-model="localBook.book_author" placeholder="Auteur" required />
     <input v-model="localBook.book_editor" placeholder="Éditeur" />
-    <input type="date" v-model="localBook.book_date" />
-    <input type="file" @change="onFileChange" />
+    <input type="date" v-model="localBook.book_date" required />
+
+    <div class="quantity-field">
+      <label>Nombre d'exemplaires à ajouter :</label>
+      <input type="number"
+             v-model.number="localBook.quantity"
+             min="1"
+             :required="isAddMode" />
+    </div>
+
+    <input type="file" @change="onFileChange" accept="image/*" />
+
     <button @click="submit">{{ submitLabel }}</button>
   </div>
 </template>
 
 <script setup>
-  // (le script reste exactement le même que précédemment)
-  import { ref, watch } from 'vue'
+  import { ref, watch, computed } from 'vue'
 
   const props = defineProps({
-    book: { type: Object, required: true },
-    submitLabel: { type: String, required: true }
+    book: {
+      type: Object,
+      required: true
+    },
+    submitLabel: {
+      type: String,
+      required: true
+    }
   })
 
   const emit = defineEmits(['submit'])
 
+  const isAddMode = computed(() =>
+    props.submitLabel.toLowerCase().includes('ajout')
+  )
+
   const normalizeDate = (date) => {
     if (!date) return ''
-    return new Date(date).toISOString().substring(0, 10)
+    return new Date(date).toISOString().split('T')[0]
   }
 
   const localBook = ref({
     book_name: '',
     book_author: '',
     book_editor: '',
-    book_date: ''
+    book_date: '',
+    quantity: 1
   })
 
   const file = ref(null)
 
+  // Synchronisation avec les props (mode édition)
   watch(
     () => props.book,
     (newBook) => {
       localBook.value = {
-        ...newBook,
-        book_date: normalizeDate(newBook.book_date)
+        book_name: newBook.book_name || '',
+        book_author: newBook.book_author || '',
+        book_editor: newBook.book_editor || '',
+        book_date: normalizeDate(newBook.book_date),
+        quantity: isAddMode.value ? 1 : 0  // 1 en ajout, 0 en modification
       }
     },
     { immediate: true }
@@ -70,7 +94,6 @@
     border: 1px solid var(--color-border);
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s;
   }
 
     .book-form input {
@@ -80,41 +103,34 @@
       border: 1px solid var(--color-border);
       border-radius: 8px;
       color: var(--color-text);
-      transition: border-color 0.2s;
     }
 
-      .book-form input:focus {
-        outline: none;
-        border-color: var(--vt-c-indigo);
-        box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.15);
-      }
-
-      .book-form input::placeholder {
-        color: var(--color-text-light-2, #888);
-      }
-
-    .book-form button {
-      padding: 0.9rem 1rem;
-      font-size: 1rem;
-      font-weight: 600;
-      background: var(--vt-c-indigo);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
-      margin-top: 0.5rem;
-    }
-
-      .book-form button:hover {
-        background: #243444;
-      }
-
-  /* Mobile */
-  @media (max-width: 480px) {
-    .book-form {
-      padding: 1.5rem;
-      margin: 2rem auto;
-    }
+  .quantity-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
+
+    .quantity-field label {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--color-text);
+    }
+
+  .book-form button {
+    padding: 0.9rem 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    background: var(--vt-c-indigo);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background 0.3s;
+  }
+
+    .book-form button:hover {
+      background: #243444;
+    }
 </style>

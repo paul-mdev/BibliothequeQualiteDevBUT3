@@ -7,8 +7,6 @@
 	</div>
 </template>
 
-
-
 <script setup>
 	import { ref } from 'vue'
 	import { useRouter } from 'vue-router'
@@ -20,7 +18,8 @@
 		book_name: '',
 		book_author: '',
 		book_editor: '',
-		book_date: ''
+		book_date: '',
+		quantity: 1  // Valeur par défaut en ajout
 	})
 
 	const addBook = async (data) => {
@@ -29,20 +28,42 @@
 		formData.append('book_author', data.book_author)
 		formData.append('book_editor', data.book_editor)
 		formData.append('book_date', data.book_date)
-		if (data.file) formData.append('image', data.file)
+		formData.append('quantity', data.quantity.toString())
 
-		const res = await fetch('/book', {
-			method: 'POST',
-			body: formData,
-			credentials: 'include'
-		})
-
-		if (!res.ok) {
-			alert('Erreur lors de l’ajout du livre')
-			return
+		if (data.file) {
+			formData.append('image', data.file)
 		}
 
-		// ✅ REDIRECTION
-		router.push('/gestion')
+		try {
+			const res = await fetch('/book', {
+				method: 'POST',
+				body: formData,
+				credentials: 'include'
+			})
+
+			if (!res.ok) {
+				const errorText = await res.text()
+				alert(errorText || 'Erreur lors de l’ajout du livre')
+				return
+			}
+
+			router.push('/gestion')
+		} catch (err) {
+			console.error(err)
+			alert('Erreur réseau lors de l’ajout')
+		}
 	}
 </script>
+
+<style scoped>
+	div {
+		max-width: 600px;
+		margin: 2rem auto;
+		padding: 1rem;
+	}
+
+	h1 {
+		text-align: center;
+		margin-bottom: 2rem;
+	}
+</style>
