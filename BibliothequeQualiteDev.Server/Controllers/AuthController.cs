@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using BibliothequeQualiteDev.Server.Models;
+using Microsoft.EntityFrameworkCore;
+
 
 [ApiController]
 [Route("[controller]")]
@@ -13,11 +16,11 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public IActionResult Register([FromBody] UsersModel user)
     {
-        if (_db.USER.Any(u => u.user_mail == user.user_mail))
+        if (_db.USERS.Any(u => u.user_mail == user.user_mail))
             return BadRequest("Email already exists");
 
         user.role_id = 1; // rôle par défaut
-        _db.USER.Add(user);
+        _db.USERS.Add(user);
         _db.SaveChanges();
 
         // session
@@ -30,7 +33,7 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public IActionResult Login([FromBody] UsersModel login)
     {
-        var user = _db.USER.FirstOrDefault(u => u.user_mail == login.user_mail && u.user_pswd == login.user_pswd);
+        var user = _db.USERS.FirstOrDefault(u => u.user_mail == login.user_mail && u.user_pswd == login.user_pswd);
         if (user == null) return Unauthorized("Invalid email or password");
 
         HttpContext.Session.SetInt32("user_id", user.user_id);
@@ -39,13 +42,41 @@ public class AuthController : ControllerBase
         return Ok(new { user.user_id, user.user_mail });
     }
 
-    [HttpGet("me")]
-    public IActionResult Me()
+    public class UserMeDto
     {
-        var id = HttpContext.Session.GetInt32("user_id");
-        var email = HttpContext.Session.GetString("user_mail");
-        if (id == null) return Unauthorized();
-        return Ok(new { user_id = id, user_mail = email });
+        public int user_id { get; set; }
+        public string user_mail { get; set; }
+        public string role_name { get; set; }
+        public List<string> rights { get; set; }
+       
+    }
+    [HttpGet("me")]
+    public async Task<IActionResult> Me()
+    {
+        var userId = HttpContext.Session.GetInt32("user_id");
+        if (userId == null) return Unauthorized();
+
+
+        var user = await _db.USERS
+            .Include(u => u.role)          // charge le rôle
+            .ThenInclude(r => r.role_rights) // charge les droits du rôle
+            .ThenInclude(rr => rr.right)
+            .FirstOrDefaultAsync(u => u.user_id == userId);
+
+        if (user == null) return Unauthorized();
+
+        return Ok(new
+        {
+            user.user_id,
+            user.user_mail,
+            user.user_name,
+            role = new
+            {
+                user.role.role_id,
+                user.role.role_name,
+                rights = user.role.role_rights.Select(rr => rr.right.right_name).ToList()
+            }
+        });
     }
 
 

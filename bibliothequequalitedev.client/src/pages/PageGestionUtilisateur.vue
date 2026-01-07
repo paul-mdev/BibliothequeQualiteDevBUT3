@@ -1,6 +1,11 @@
 <template>
-  <div class="gestion-page">
+  <div v-if="loading">
+    <p>Chargement...</p>
+  </div>
+
+  <div v-else-if="user && user.role.role_name === 'Administrateur'" class="gestion-page">
     <h1>Gestion des utilisateurs</h1>
+    <p>Bienvenue {{ user.user_name }}, vous pouvez gérer les utilisateurs.</p>
 
     <button @click="addUser">Ajouter un utilisateur</button>
 
@@ -28,7 +33,7 @@
       </tbody>
     </table>
 
-    <!-- Formulaire modale simple pour Ajouter / Modifier -->
+    <!-- Formulaire modale -->
     <div v-if="showForm" class="modal">
       <div class="modal-content">
         <h2>{{ formLabel }}</h2>
@@ -48,15 +53,30 @@
       </div>
     </div>
   </div>
+
+  <div v-else>
+    <p>Vous n'avez pas les droits pour accéder à cette page.</p>
+  </div>
 </template>
 
 <script setup>
   import { ref, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
 
+  onMounted(() => {
+    console.log("hejiafoijfeijohezghhiouzehiouzegfeeeeeeeeeffefeefeffehioue")
+    fetch('/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(user => console.log('Mon utilisateur:', user))
+      .catch(err => console.error('Erreur fetch:', err))
+  })
+
+
   const router = useRouter()
   const users = ref([])
-  const roles = ref([]) // récupère la table ROLE du backend
+  const roles = ref([])
+  const user = ref(null) // ⭐ Ajout de la variable user
+  const loading = ref(true) // ⭐ Ajout du state de chargement
   const showForm = ref(false)
   const formLabel = ref('Ajouter un utilisateur')
   const isNewUser = ref(true)
@@ -68,7 +88,30 @@
     role_id: 1
   })
 
-  // ----- Fonctions backend -----
+  // ⭐ Récupération des infos utilisateur connecté
+  const fetchCurrentUser = async () => {
+    try {
+      const res = await fetch('/auth/me', { credentials: 'include' })
+      if (!res.ok) {
+        router.push('/login')
+        return
+      }
+      user.value = await res.json()
+      console.log('Utilisateur connecté:', user.value)
+
+      // Vérification du rôle
+      if (user.value.role.role_name !== 'Administrateur') {
+        alert('Accès refusé : vous devez être administrateur')
+        router.push('/')
+      }
+    } catch (err) {
+      console.error('Erreur récupération utilisateur:', err)
+      router.push('/login')
+    } finally {
+      loading.value = false
+    }
+  }
+
   const fetchUsers = async () => {
     const res = await fetch('/users', { credentials: 'include' })
     if (res.ok) users.value = await res.json()
@@ -80,17 +123,18 @@
   }
 
   onMounted(async () => {
-    await fetchUsers()
-    await fetchRoles()
+    await fetchCurrentUser() // ⭐ D'abord vérifier l'utilisateur
+    if (user.value && user.value.role.role_name === 'Administrateur') {
+      await fetchUsers()
+      await fetchRoles()
+    }
   })
 
-  // ----- Helpers -----
   const roleName = (roleId) => {
     const r = roles.value.find(r => r.role_id === roleId)
     return r ? r.role_name : 'Inconnu'
   }
 
-  // ----- Actions -----
   const addUser = () => {
     isNewUser.value = true
     formLabel.value = 'Ajouter un utilisateur'
@@ -102,11 +146,12 @@
     const res = await fetch(`/users/${id}`, { credentials: 'include' })
     if (!res.ok) return alert('Erreur récupération utilisateur')
     const u = await res.json()
-    form.value = { ...u, user_pswd: '' } // ne jamais pré-remplir le mot de passe
+    form.value = { ...u, user_pswd: '' }
     isNewUser.value = false
     formLabel.value = 'Modifier utilisateur'
     showForm.value = true
   }
+
 
   const deleteUser = async (id) => {
     if (!confirm('Supprimer cet utilisateur ?')) return
@@ -115,7 +160,6 @@
     else alert('Erreur suppression')
   }
 
-  // ----- Formulaire -----
   const submitForm = async () => {
     const payload = { ...form.value }
     if (isNewUser.value && !payload.user_pswd) return alert('Mot de passe requis')

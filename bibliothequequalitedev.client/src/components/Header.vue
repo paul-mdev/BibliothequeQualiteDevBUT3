@@ -1,3 +1,27 @@
+<script setup>
+  import { computed, onMounted } from 'vue'
+  import { useRouter } from 'vue-router'
+  import { userState, fetchUser } from '@/stores/user'
+
+  const router = useRouter()
+
+  // Computed pour que le template réagisse aux changements du store
+  const isAdmin = computed(() => userState.isAdmin)
+  const isLoggedIn = computed(() => userState.isLoggedIn)
+
+  const logout = async () => {
+    await fetch('/auth/logout', { method: 'POST', credentials: 'include' })
+    userState.user = null
+    userState.isLoggedIn = false
+    userState.isAdmin = false
+    router.push('/login')
+  }
+
+  onMounted(() => {
+    fetchUser()
+  })
+</script>
+
 <template>
   <header class="site-header">
     <nav class="nav">
@@ -5,12 +29,20 @@
         <li><router-link to="/">Accueil</router-link></li>
         <li><router-link to="/statistiques">Statistiques</router-link></li>
         <li><router-link to="/parametres">Paramètres</router-link></li>
-        <li><router-link to="/gestion/livres">Gestion des livres</router-link></li>
-        <li><router-link to="/gestion/utilisateurs">Gestion des utilisateurs</router-link></li>
-        <li><router-link to="/login">Connexion</router-link></li>
 
+        <li v-if="isAdmin">
+          <router-link to="/gestion/livres">Gestion des livres</router-link>
+        </li>
+        <li v-if="isAdmin">
+          <router-link to="/gestion/utilisateurs">Gestion des utilisateurs</router-link>
+        </li>
 
-
+        <li v-if="!isLoggedIn">
+          <router-link to="/login">Connexion</router-link>
+        </li>
+        <li v-else>
+          <button @click="logout" class="logout-btn">Déconnexion</button>
+        </li>
       </ul>
     </nav>
   </header>

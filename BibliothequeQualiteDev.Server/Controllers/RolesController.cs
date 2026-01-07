@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using BibliothequeQualiteDev.Server.Models;
+
 using System.Data;
 
 [ApiController]
@@ -17,7 +19,7 @@ public class RolesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<RolesModel>>> GetRoles()
     {
-        var roles = await _db.ROLE.ToListAsync();
+        var roles = await _db.ROLES.ToListAsync();
         return Ok(roles);
     }
 
@@ -25,7 +27,7 @@ public class RolesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<RolesModel>> GetRole(int id)
     {
-        var role = await _db.ROLE.FindAsync(id);
+        var role = await _db.ROLES.FindAsync(id);
         if (role == null) return NotFound();
         return Ok(role);
     }
