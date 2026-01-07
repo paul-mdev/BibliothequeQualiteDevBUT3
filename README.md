@@ -12,7 +12,7 @@ Une bibliothèque universitaire souhaite moderniser son système de gestion des 
 
 L’objectif est de concevoir et développer une application web permettant d’améliorer la gestion des livres, des emprunts et des utilisateurs, tout en respectant les bonnes pratiques de développement logiciel.
 
-# Accès :
+# Accès : 
 
  **Application : http://localhost:5173**
  **API (Swagger si activé) : http://localhost:5000**
