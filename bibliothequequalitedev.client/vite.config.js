@@ -40,6 +40,11 @@ export default defineConfig(({ command }) => {
           target: isDocker ? 'http://api:5000' : undefined,
           changeOrigin: true
         }
+        ,
+        '^/statistics': {
+          target: isDocker ? 'http://api:5000' : undefined,
+          changeOrigin: true
+        }
       }
     }
   }

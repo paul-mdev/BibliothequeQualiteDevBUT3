@@ -11,7 +11,7 @@ public class AppDbContext : DbContext
     public DbSet<RolesModel> ROLES => Set<RolesModel>();
     public DbSet<BorrowedModel> BORROWED => Set<BorrowedModel>();
     public DbSet<LibraryStockModel> LIBRARY_STOCK => Set<LibraryStockModel>();
-
+    public DbSet<DelayModel> DELAY => Set<DelayModel>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,6 +29,9 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<RolesModel>()
             .HasKey(r => r.role_id); // Explicit primary key
+
+        modelBuilder.Entity<DelayModel>()
+            .HasKey(r => r.delay_id); // Explicit primary key
 
 
         base.OnModelCreating(modelBuilder);
