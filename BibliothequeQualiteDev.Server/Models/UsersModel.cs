@@ -17,13 +17,12 @@ namespace BibliothequeQualiteDev.Server.Models
 
         public int role_id { get; set; }
 
-        // Navigation vers le rôle (facultatif mais utile)
+        // Navigation vers le rôle
         [ForeignKey("role_id")]
         [JsonIgnore] // Évite les boucles lors de la sérialisation JSON
         public RolesModel? role { get; set; } = null;
 
         // Navigation inverse : un utilisateur peut avoir plusieurs emprunts
-        // Très utile pour les futures fonctionnalités (historique, etc.)
         [JsonIgnore]
         public virtual ICollection<BorrowedModel> BorrowedBooks { get; set; } = new List<BorrowedModel>();
     }

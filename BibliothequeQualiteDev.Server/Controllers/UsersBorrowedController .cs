@@ -1,8 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+/// <summary>
+/// ===== CONTRÔLEUR DES EMPRUNTS UTILISATEUR =====
+/// Fournit les emprunts d'un utilisateur spécifique
+/// Route de base : /UsersBorrowed
+/// 
+/// Endpoints :
+/// - GET /UsersBorrowed/me : Emprunts de l'utilisateur connecté
+/// - GET /UsersBorrowed/all : Tous les emprunts (pour admins)
+/// </summary>
 [ApiController]
-[Route("[controller]")] // Route: /UsersBorrowed
+[Route("[controller]")]
 public class UsersBorrowedController : ControllerBase
 {
     private readonly AppDbContext _db;
@@ -12,26 +21,38 @@ public class UsersBorrowedController : ControllerBase
         _db = db;
     }
 
-    // GET /UsersBorrowed/me
+    /// <summary>
+    /// ===== GET /UsersBorrowed/me =====
+    /// Récupère tous les emprunts de l'utilisateur connecté
+    /// Inclut les emprunts en cours ET l'historique (restitués)
+    /// Utilisé pour la page "Mon compte" / "Mes emprunts"
+    /// 
+    /// Sécurité : Nécessite d'être authentifié (session)
+    /// Chaque utilisateur ne voit que ses propres emprunts
+    /// </summary>
     [HttpGet("me")]
     public async Task<IActionResult> GetMyBorrowed()
     {
-        // Récupérer l'utilisateur connecté depuis la session
+        // ===== RÉCUPÉRATION DE L'ID UTILISATEUR =====
+        // Depuis la session côté serveur
         var userId = HttpContext.Session.GetInt32("user_id");
 
-        Console.WriteLine($"[UsersBorrowed/me] Session user_id: {userId}");
 
+        // ===== VÉRIFICATION AUTHENTIFICATION =====
         if (userId == null)
         {
-            Console.WriteLine("[UsersBorrowed/me] ❌ Non autorisé - pas de session");
             return Unauthorized();
         }
 
         try
         {
-            // Récupérer les emprunts de l'utilisateur
+            // ===== RÉCUPÉRATION DES EMPRUNTS =====
+            // Requête avec JOIN pour récupérer les infos du livre
             var borrowed = await _db.BORROWED
+                // Filtre : uniquement les emprunts de cet utilisateur
                 .Where(b => b.user_id == userId.Value)
+
+                // JOIN avec la table BOOK pour récupérer les détails
                 .Join(_db.BOOK,
                     borrow => borrow.book_id,
                     book => book.book_id,
@@ -40,34 +61,48 @@ public class UsersBorrowedController : ControllerBase
                         borrow.id_borrow,
                         borrow.date_start,
                         borrow.date_end,
-                        borrow.is_returned,
+                        borrow.is_returned,  // Important : statut rendu/non rendu
                         BookId = book.book_id,
                         BookName = book.book_name,
                         BookAuthor = book.book_author
                     })
                 .ToListAsync();
 
-            Console.WriteLine($"[UsersBorrowed/me] ✅ {borrowed.Count} emprunts trouvés");
 
             return Ok(borrowed);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[UsersBorrowed/me] ❌ Erreur: {ex.Message}");
+            // ===== GESTION DES ERREURS =====
             return StatusCode(500, "Erreur serveur");
         }
     }
 
-    // GET /UsersBorrowed/all (optionnel - pour les admins)
+    /// <summary>
+    /// ===== GET /UsersBorrowed/all =====
+    /// Récupère TOUS les emprunts de TOUS les utilisateurs
+    /// Endpoint optionnel pour les administrateurs
+    /// 
+    /// Note : Dans la version actuelle, nécessite juste d'être connecté
+    /// TODO : Ajouter une vérification de rôle administrateur
+    /// </summary>
     [HttpGet("all")]
     public async Task<IActionResult> GetAllBorrowed()
     {
+        // ===== VÉRIFICATION BASIQUE =====
         var userId = HttpContext.Session.GetInt32("user_id");
         if (userId == null) return Unauthorized();
 
+        // TODO : Vérifier que l'utilisateur a le rôle "admin"
+        // if (!IsAdmin(userId)) return Forbid();
+
         try
         {
+            // ===== REQUÊTE COMPLEXE AVEC DOUBLE JOIN =====
+            // 1. BORROWED → BOOK
+            // 2. Résultat → USERS
             var borrowed = await _db.BORROWED
+                // Premier JOIN : Emprunts + Livres
                 .Join(_db.BOOK,
                     borrow => borrow.book_id,
                     book => book.book_id,
@@ -81,6 +116,7 @@ public class UsersBorrowedController : ControllerBase
                         BookName = book.book_name,
                         BookAuthor = book.book_author
                     })
+                // Deuxième JOIN : Résultat + Utilisateurs
                 .Join(_db.USERS,
                     b => b.user_id,
                     u => u.user_id,
@@ -102,7 +138,6 @@ public class UsersBorrowedController : ControllerBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[UsersBorrowed/all] ❌ Erreur: {ex.Message}");
             return StatusCode(500, "Erreur serveur");
         }
     }
