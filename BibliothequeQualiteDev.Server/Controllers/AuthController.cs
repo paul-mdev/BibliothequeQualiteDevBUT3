@@ -3,7 +3,6 @@ using BibliothequeQualiteDev.Server.Models;
 using Microsoft.EntityFrameworkCore;
 using BCrypt.Net;
 
-/// <summary>
 /// ===== CONTRÔLEUR D'AUTHENTIFICATION =====
 /// Gère l'inscription, la connexion et la déconnexion des utilisateurs
 /// Route de base : /auth
@@ -12,7 +11,6 @@ using BCrypt.Net;
 /// - Mots de passe hashés avec BCrypt
 /// - Sessions serveur pour maintenir l'état de connexion
 /// - Validation des credentials
-/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class AuthController : ControllerBase
@@ -26,9 +24,7 @@ public class AuthController : ControllerBase
 
     // ===== DTOs POUR L'AUTHENTIFICATION =====
 
-    /// <summary>
     /// DTO pour l'inscription
-    /// </summary>
     public class RegisterDTO
     {
         public string user_name { get; set; } = string.Empty;
@@ -36,16 +32,13 @@ public class AuthController : ControllerBase
         public string user_pswd { get; set; } = string.Empty;
     }
 
-    /// <summary>
     /// DTO pour la connexion
-    /// </summary>
     public class LoginDTO
     {
         public string user_mail { get; set; } = string.Empty;
         public string user_pswd { get; set; } = string.Empty;
     }
 
-    /// <summary>
     /// ===== POST /auth/register =====
     /// Inscription d'un nouvel utilisateur
     /// 
@@ -54,7 +47,6 @@ public class AuthController : ControllerBase
     /// 2. Hashage du mot de passe avec BCrypt
     /// 3. Création de l'utilisateur avec le rôle "Étudiant" (role_id = 3)
     /// 4. Création automatique de la session
-    /// </summary>
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDTO dto)
     {
@@ -80,11 +72,9 @@ public class AuthController : ControllerBase
         // Stocke l'ID et l'email dans la session côté serveur
         HttpContext.Session.SetInt32("user_id", user.user_id);
         HttpContext.Session.SetString("user_mail", user.user_mail);
-
         return Ok(new { user.user_id, user.user_mail });
     }
 
-    /// <summary>
     /// ===== POST /auth/login =====
     /// Connexion d'un utilisateur existant
     /// 
@@ -92,7 +82,6 @@ public class AuthController : ControllerBase
     /// 1. Existence de l'email
     /// 2. Vérification du mot de passe hashé
     /// 3. Création de la session si succès
-    /// </summary>
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDTO dto)
     {
@@ -128,7 +117,6 @@ public class AuthController : ControllerBase
         });
     }
 
-    /// <summary>
     /// ===== GET /auth/me =====
     /// Récupère les informations de l'utilisateur connecté
     /// Endpoint crucial pour :
@@ -138,7 +126,6 @@ public class AuthController : ControllerBase
     /// 
     /// Charge les relations en profondeur :
     /// User → Role → RoleRights → Rights
-    /// </summary>
     [HttpGet("me")]
     public async Task<IActionResult> Me()
     {
@@ -175,8 +162,6 @@ public class AuthController : ControllerBase
             .Select(rr => rr.right.right_name)
             .ToList() ?? new List<string>();
 
-        Console.WriteLine($"[AUTH/ME] Rights list: {string.Join(", ", rights)}");
-
         return Ok(new
         {
             user.user_id,
@@ -186,16 +171,15 @@ public class AuthController : ControllerBase
             {
                 user.role.role_id,
                 user.role.role_name,
-                rights = rights // IMPORTANT : retourne la liste des droits
+                rights = rights // retourne la liste des droits
+
             }
         });
     }
 
-    /// <summary>
     /// ===== POST /auth/logout =====
     /// Déconnexion de l'utilisateur
     /// Efface toutes les données de session
-    /// </summary>
     [HttpPost("logout")]
     public IActionResult Logout()
     {

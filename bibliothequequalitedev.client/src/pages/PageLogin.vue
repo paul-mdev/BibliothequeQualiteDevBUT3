@@ -6,9 +6,8 @@
     <!-- Affiché uniquement si l'utilisateur n'est pas connecté -->
     <div v-if="!user">
       <!-- Champs de saisie -->
-      <input v-model="user_mail" placeholder="Adresse email" />
-      <input v-model="user_pswd" type="password" placeholder="Mot de passe" />
-
+      <input v-model="user_mail" placeholder="Adresse email" type="email" required />
+      <input v-model="user_pswd" type="password" placeholder="Mot de passe" required />
       <!-- Boutons d'action -->
       <button @click="login">Se connecter</button>
       <button @click="register">Créer un compte</button>
@@ -17,13 +16,13 @@
     <!-- ===== ÉTAT CONNECTÉ ===== -->
     <!-- Affiché si l'utilisateur est déjà connecté -->
     <div v-else>
-      <p>Connecté en tant que : {{ user.user_mail }}</p>
+      <p>Connecté en tant que : <strong>{{ user.user_mail }}</strong></p>
       <button @click="logout">Se déconnecter</button>
     </div>
 
     <!-- ===== MESSAGE D'ERREUR ===== -->
     <!-- Affiché en cas d'erreur lors de la connexion/inscription -->
-    <div v-if="error" style="color:red">{{ error }}</div>
+    <div v-if="error" class="error-message">{{ error }}</div>
   </div>
 </template>
 
@@ -38,8 +37,6 @@
   const user_pswd = ref('')        // Mot de passe saisi
   const user = ref(null)           // Données de l'utilisateur connecté
   const error = ref('')            // Message d'erreur éventuel
-
-  // URL de base de l'API d'authentification
   const api = '/auth'
 
   /**
@@ -50,10 +47,7 @@
    */
   async function fetchMe() {
     try {
-      const res = await fetch(`${api}/me`, {
-        credentials: 'include'  // Inclut les cookies de session
-      })
-
+      const res = await fetch(`${api}/me`, { credentials: 'include' })       // Inclut les cookies de session
       if (res.ok) {
         // Utilisateur déjà connecté
         user.value = await res.json()
@@ -82,10 +76,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          user_mail: user_mail.value,
-          user_pswd: user_pswd.value
-        })
+        body: JSON.stringify({ user_mail: user_mail.value, user_pswd: user_pswd.value })
       })
 
       // Gestion de l'erreur
@@ -97,8 +88,9 @@
       // Redirection vers l'accueil
       router.push('/')
     } catch (err) {
+
       // Affichage de l'erreur à l'utilisateur
-      error.value = err.message
+      error.value = err.message || 'Erreur de connexion'
     }
   }
 
@@ -116,10 +108,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          user_mail: user_mail.value,
-          user_pswd: user_pswd.value
-        })
+        body: JSON.stringify({ user_mail: user_mail.value, user_pswd: user_pswd.value })
       })
 
       // Gestion de l'erreur
@@ -132,7 +121,7 @@
       router.push('/')
     } catch (err) {
       // Affichage de l'erreur à l'utilisateur
-      error.value = err.message
+      error.value = err.message || 'Erreur lors de l’inscription'
     }
   }
 
@@ -150,25 +139,55 @@
 
     // Réinitialise l'état utilisateur
     user.value = null
+    router.push('/login')
   }
 </script>
 
 <style scoped>
   .login-page {
     max-width: 400px;
-    margin: 3rem auto;
+    margin: 6rem auto;
+    padding: 2rem;
+    background: var(--color-background-soft, #fff);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     text-align: center;
   }
 
     .login-page input {
       display: block;
-      margin: 0.5rem auto;
-      width: 80%;
-      padding: 0.5rem;
+      width: 100%;
+      padding: 12px;
+      margin: 12px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
     }
 
     .login-page button {
-      margin: 0.5rem;
-      padding: 0.5rem 1rem;
+      padding: 12px 24px;
+      margin: 10px;
+      background: var(--vt-c-indigo, #3b82f6);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
     }
+
+      .login-page button:hover {
+        background: #2563eb;
+      }
+
+  .error-message {
+    color: #e74c3c;
+    margin-top: 1rem;
+    font-weight: bold;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .login-page {
+      background: #1e293b;
+    }
+  }
 </style>

@@ -27,12 +27,9 @@
       <tbody>
         <!-- Boucle sur les emprunts de l'utilisateur -->
         <!-- Classe 'returned' appliquée aux livres déjà rendus -->
-        <tr v-for="b in borrowed"
-            :key="b.id_borrow"
-            :class="{ 'returned': b.is_returned }">
-
-          <td><strong>{{ b.book_name }}</strong></td>
-          <td>{{ b.book_author }}</td>
+        <tr v-for="b in borrowed" :key="b.id_borrow" :class="{ 'returned': b.is_returned }">
+          <td><strong>{{ b.bookName }}</strong></td>
+          <td>{{ b.bookAuthor }}</td>
           <td>{{ formatDate(b.date_start) }}</td>
           <td>{{ formatDate(b.date_end) }}</td>
 
@@ -99,7 +96,7 @@
 
       // Mise à jour de la liste des emprunts
       borrowed.value = await res.json()
-      console.log('📚 Emprunts chargés:', borrowed.value.length)
+      console.log('📚 Emprunts chargés:', borrowed.value)
     } catch (err) {
       console.error('Erreur fetchBorrowed:', err)
       alert('Erreur lors du chargement de vos emprunts')
@@ -117,6 +114,7 @@
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('fr-FR')
   }
+
 
   /**
    * ===== CALCUL DU TEMPS RESTANT =====
@@ -145,6 +143,7 @@
       return `${heures} heure${heures > 1 ? 's' : ''}`
     }
   }
+
 
   /**
    * Vérifie si un emprunt est en retard
@@ -215,6 +214,7 @@
 
   td {
     text-align: center;
+    color: #2c3e50;
   }
 
   tbody tr:hover {

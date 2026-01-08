@@ -89,21 +89,17 @@
   const fetchCurrentUser = async () => {
     try {
       await fetchUser()
-      console.log('👤 Utilisateur connecté:', userState.user)
-      console.log('🔑 Droits:', userState.rights)
 
       // Vérification du droit
       if (!hasRight('gerer_utilisateurs')) {
-        console.log('❌ Droit "gerer_utilisateurs" manquant')
         alert('Accès refusé : vous n\'avez pas le droit de gérer les utilisateurs')
         router.push('/')
         return false
       }
 
-      console.log('✅ Droit "gerer_utilisateurs" présent')
       return true
     } catch (err) {
-      console.error('⚠️ Erreur récupération utilisateur:', err)
+      console.error('Erreur récupération utilisateur:', err)
       router.push('/login')
       return false
     } finally {
@@ -116,7 +112,6 @@
       const res = await fetch('/users', { credentials: 'include' })
       if (res.ok) {
         users.value = await res.json()
-        console.log('📋 Utilisateurs chargés:', users.value.length)
       }
     } catch (err) {
       console.error('Erreur fetchUsers:', err)
@@ -128,7 +123,6 @@
       const res = await fetch('/roles', { credentials: 'include' })
       if (res.ok) {
         roles.value = await res.json()
-        console.log('👥 Rôles chargés:', roles.value)
       }
     } catch (err) {
       console.error('Erreur fetchRoles:', err)
@@ -174,7 +168,6 @@
       })
       if (res.ok) {
         await fetchUsers()
-        console.log('✅ Utilisateur supprimé')
       } else {
         alert('Erreur suppression')
       }
@@ -204,7 +197,6 @@
       if (res.ok) {
         showForm.value = false
         await fetchUsers()
-        console.log('✅ Utilisateur sauvegardé')
       } else {
         const text = await res.text()
         alert('Erreur : ' + text)

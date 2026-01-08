@@ -3,79 +3,68 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BibliothequeQualiteDev.Server.Controllers
 {
-    /// <summary>
     /// ===== CONTRÔLEUR DE GESTION DES LIVRES =====
     /// Gère toutes les opérations CRUD sur les livres
     /// Route de base : /book
-    /// </summary>
     [ApiController]
     [Route("[controller]")]
     public class BookController : ControllerBase
     {
         private readonly AppDbContext _db;
 
-        /// <summary>
         /// Constructeur avec injection de dépendances
         /// Le DbContext est automatiquement injecté par le conteneur DI
-        /// </summary>
         public BookController(AppDbContext db)
         {
             _db = db;
         }
 
-        /// <summary>
         /// ===== GET /book =====
         /// Récupère la liste complète de tous les livres
         /// Utilisé pour l'affichage du catalogue
-        /// </summary>
-        /// <returns>Liste de tous les livres de la base de données</returns>
+        /// Liste de tous les livres de la base de données
         [HttpGet]
         public async Task<IEnumerable<BookModel>> Get()
         {
             return await _db.BOOK.ToListAsync();
         }
 
-        /// <summary>
+
         /// ===== GET /book/{id} =====
         /// Récupère les détails d'un livre spécifique
         /// Utilisé pour la page de détail du livre
-        /// </summary>
-        /// <param name="id">ID du livre recherché</param>
-        /// <returns>Le livre trouvé ou NotFound (404)</returns>
+        /// ID du livre recherché
+        /// Le livre trouvé ou NotFound (404)
         [HttpGet("{id}")]
-        public IActionResult GetBook(int id)
+        public async Task<IActionResult> GetBook(int id)
         {
-            var book = _db.BOOK.Find(id);
+            var book = await _db.BOOK.FindAsync(id);
             if (book == null) return NotFound();
             return Ok(book);
         }
 
-        /// <summary>
         /// ===== GET /book/{id}/available-count =====
         /// Compte le nombre d'exemplaires disponibles pour un livre
         /// Calcul : total_stock - borrowed_count
         /// Utilisé pour afficher la disponibilité en temps réel
-        /// </summary>
-        /// <param name="id">ID du livre</param>
-        /// <returns>Nombre d'exemplaires disponibles</returns>
+        /// ID du livre
+        /// Nombre d'exemplaires disponibles
         [HttpGet("{id}/available-count")]
         public async Task<IActionResult> GetAvailableCount(int id)
         {
             var stock = await _db.LIBRARY_STOCK.FirstOrDefaultAsync(s => s.book_id == id);
             if (stock == null) return Ok(0);
-            return Ok(stock.AvailableCount);
+            return Ok(stock.total_stock - stock.borrowed_count);
         }
 
-        /// <summary>
         /// ===== POST /book =====
         /// Ajoute un nouveau livre dans la bibliothèque
         /// Processus en 3 étapes :
         /// 1. Création du livre
         /// 2. Upload de l'image (optionnel)
         /// 3. Création du stock initial
-        /// </summary>
-        /// <param name="model">Données du livre avec image et quantité</param>
-        /// <returns>Le livre créé avec son ID généré</returns>
+        /// Données du livre avec image et quantité
+        /// Le livre créé avec son ID généré
         [HttpPost]
         public async Task<IActionResult> AddBook([FromForm] BookUploadModel model)
         {
@@ -89,7 +78,8 @@ namespace BibliothequeQualiteDev.Server.Controllers
             };
 
             _db.BOOK.Add(book);
-            await _db.SaveChangesAsync(); // L'ID est généré automatiquement ici
+            await _db.SaveChangesAsync(); // Génère book.book_id
+
 
             // ===== ÉTAPE 2 : GESTION DE L'IMAGE =====
             if (model.image != null && model.image.Length > 0)
@@ -99,7 +89,7 @@ namespace BibliothequeQualiteDev.Server.Controllers
                 book.book_image_ext = ext;
 
                 // Création du dossier de destination
-                var dir = Path.Combine("wwwroot", "images", "books");
+                var dir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "books");
                 Directory.CreateDirectory(dir);
 
                 // Nom du fichier : {book_id}{extension}
@@ -115,31 +105,34 @@ namespace BibliothequeQualiteDev.Server.Controllers
 
             // ===== ÉTAPE 3 : AJOUT DU STOCK INITIAL =====
             // Crée une entrée dans LIBRARY_STOCK avec la quantité spécifiée
-            int quantity = model.quantity > 0 ? model.quantity : 1;
 
-            _db.LIBRARY_STOCK.Add(new LibraryStockModel
+            // Gestion du stock
+            int quantity = model.quantity > 0 ? model.quantity : 1;
+            var stock = new LibraryStockModel
             {
                 book_id = book.book_id,
                 total_stock = quantity,
                 borrowed_count = 0  // Aucun emprunt au départ
-            });
+            };
 
+
+            _db.LIBRARY_STOCK.Add(stock);
             await _db.SaveChangesAsync();
+
             return Ok(book);
         }
 
-        /// <summary>
         /// ===== PUT /book/{id} =====
         /// Modifie un livre existant
         /// Permet de :
         /// - Mettre à jour les informations du livre
         /// - Changer l'image de couverture
         /// - Ajouter des exemplaires au stock
-        /// </summary>
-        /// <param name="id">ID du livre à modifier</param>
-        /// <param name="dto">Nouvelles données du livre</param>
-        /// <param name="image">Nouvelle image (optionnelle)</param>
-        /// <returns>NoContent (204) si succès</returns>
+        /// ID du livre à modifier
+        /// Nouvelles données du livre
+        /// Nouvelle image (optionnelle)
+        /// NoContent (204) si succès
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateBook(int id, [FromForm] BookUpdateDto dto, IFormFile? image)
         {
@@ -153,15 +146,25 @@ namespace BibliothequeQualiteDev.Server.Controllers
             book.book_editor = dto.book_editor ?? book.book_editor;
             book.book_date = dto.book_date;
 
-            // ===== MISE À JOUR DE L'IMAGE =====
+            // Gestion de l'image (remplacement si nouvelle image fournie)
             if (image != null && image.Length > 0)
             {
-                var ext = Path.GetExtension(image.FileName).TrimStart('.');
+                var ext = Path.GetExtension(image.FileName);
+                if (!string.IsNullOrEmpty(ext)) ext = ext.TrimStart('.');
+
                 var imagesPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "books");
                 Directory.CreateDirectory(imagesPath);
-                var filePath = Path.Combine(imagesPath, $"{book.book_id}.{ext}");
 
-                using var stream = new FileStream(filePath, FileMode.Create);
+                // Suppression de l'ancienne image si elle existe
+                if (!string.IsNullOrEmpty(book.book_image_ext))
+                {
+                    var oldPath = Path.Combine(imagesPath, $"{book.book_id}{book.book_image_ext}");
+                    if (System.IO.File.Exists(oldPath))
+                        System.IO.File.Delete(oldPath);
+                }
+
+                var newPath = Path.Combine(imagesPath, $"{book.book_id}.{ext}");
+                using var stream = new FileStream(newPath, FileMode.Create);
                 await image.CopyToAsync(stream);
 
                 book.book_image_ext = "." + ext;
@@ -175,7 +178,12 @@ namespace BibliothequeQualiteDev.Server.Controllers
                 if (stock == null)
                 {
                     // Création du stock s'il n'existe pas
-                    stock = new LibraryStockModel { book_id = id, total_stock = dto.quantity };
+                    stock = new LibraryStockModel
+                    {
+                        book_id = id,
+                        total_stock = dto.quantity,
+                        borrowed_count = 0
+                    };
                     _db.LIBRARY_STOCK.Add(stock);
                 }
                 else
@@ -186,29 +194,25 @@ namespace BibliothequeQualiteDev.Server.Controllers
             }
 
             await _db.SaveChangesAsync();
-            return NoContent();
 
-            // NOTE : Code dupliqué ci-dessous (probablement une erreur)
-            await _db.SaveChangesAsync();
             return NoContent();
         }
 
-        /// <summary>
         /// ===== POST /book/{id}/borrow =====
         /// Emprunte un livre pour l'utilisateur connecté
         /// Vérifications effectuées :
         /// 1. Utilisateur authentifié
         /// 2. Pas d'emprunt en cours du même livre
         /// 3. Au moins un exemplaire disponible
-        /// </summary>
-        /// <param name="id">ID du livre à emprunter</param>
-        /// <returns>Message de confirmation ou erreur</returns>
+        /// ID du livre à emprunter
+        /// Message de confirmation ou erreur
         [HttpPost("{id}/borrow")]
         public async Task<IActionResult> BorrowBook(int id)
         {
             // ===== VÉRIFICATION AUTHENTIFICATION =====
             var userId = HttpContext.Session.GetInt32("user_id");
-            if (!userId.HasValue) return Unauthorized("Connectez-vous pour emprunter.");
+            if (!userId.HasValue)
+                return Unauthorized("Connectez-vous pour emprunter.");
 
             // ===== VÉRIFICATION EMPRUNT EXISTANT =====
             // Un utilisateur ne peut pas emprunter deux fois le même livre
@@ -216,12 +220,13 @@ namespace BibliothequeQualiteDev.Server.Controllers
                 .FirstOrDefaultAsync(b => b.user_id == userId.Value &&
                                          b.book_id == id &&
                                          !b.is_returned);
+
             if (existingBorrow != null)
                 return BadRequest("Vous avez déjà emprunté ce livre.");
 
             // ===== VÉRIFICATION DISPONIBILITÉ =====
             var stock = await _db.LIBRARY_STOCK.FirstOrDefaultAsync(s => s.book_id == id);
-            if (stock == null || stock.AvailableCount <= 0)
+            if (stock == null || stock.total_stock - stock.borrowed_count <= 0)
                 return BadRequest("Aucun exemplaire disponible.");
 
             // ===== CRÉATION DE L'EMPRUNT =====
@@ -231,43 +236,43 @@ namespace BibliothequeQualiteDev.Server.Controllers
                 book_id = id,
                 date_start = DateTime.Today,
                 date_end = DateTime.Today.AddDays(60),  // Durée d'emprunt : 60 jours
+
                 is_returned = false
             };
 
             _db.BORROWED.Add(borrow);
             stock.borrowed_count += 1; // Incrémente le compteur d'emprunts
 
+
             await _db.SaveChangesAsync();
 
             return Ok(new { message = "Livre emprunté avec succès !" });
         }
 
-        /// <summary>
         /// ===== DELETE /book/{id} =====
         /// Supprime un livre de la bibliothèque
         /// ATTENTION : Supprime également le stock et les emprunts associés
         /// (selon les règles de cascade définies dans DbContext)
-        /// </summary>
-        /// <param name="id">ID du livre à supprimer</param>
-        /// <returns>NoContent (204) si succès</returns>
+        /// ID du livre à supprimer
+        /// NoContent (204) si succès
         [HttpDelete("{id}")]
-        public IActionResult DeleteBook(int id)
+        public async Task<IActionResult> DeleteBook(int id)
         {
-            var book = _db.BOOK.FirstOrDefault(b => b.book_id == id);
-            if (book == null) return NotFound();
+            var book = await _db.BOOK.FirstOrDefaultAsync(b => b.book_id == id);
+            if (book == null)
+                return NotFound("Livre non trouvé.");
 
             _db.BOOK.Remove(book);
-            _db.SaveChanges();
-            return NoContent();
+            await _db.SaveChangesAsync();
+
+            return NoContent(); // 204 - Suppression réussie
         }
 
         // ===== DTOs (DATA TRANSFER OBJECTS) =====
 
-        /// <summary>
         /// DTO pour l'ajout d'un livre
         /// Inclut les informations du livre, l'image et la quantité initiale
         /// [FromForm] permet de recevoir les données en multipart/form-data
-        /// </summary>
         public class BookUploadModel
         {
             public string? book_name { get; set; }
@@ -278,11 +283,9 @@ namespace BibliothequeQualiteDev.Server.Controllers
             public int quantity { get; set; } = 1;  // Quantité par défaut
         }
 
-        /// <summary>
         /// DTO pour la modification d'un livre
         /// Quantité = 0 par défaut (pas d'ajout d'exemplaires)
         /// Si > 0, ajoute des exemplaires au stock existant
-        /// </summary>
         public class BookUpdateDto
         {
             public string? book_name { get; set; }

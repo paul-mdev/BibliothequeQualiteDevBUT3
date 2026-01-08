@@ -1,4 +1,4 @@
-USE bibliotheque;
+﻿USE bibliotheque;
 
 SET FOREIGN_KEY_CHECKS=0;
 
@@ -45,15 +45,15 @@ CREATE TABLE LIBRARY_STOCK (
     FOREIGN KEY (book_id) REFERENCES BOOK(book_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS BORROWED (
+CREATE TABLE BORROWED (
     id_borrow INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id INT UNSIGNED NOT NULL,
     book_id INT UNSIGNED NOT NULL,
     date_start DATE NOT NULL,
     date_end DATE NOT NULL,
     is_returned TINYINT(1) DEFAULT 0,
-    FOREIGN KEY (user_id) REFERENCES USERS(user_id),
-    FOREIGN KEY (book_id) REFERENCES BOOK(book_id),
+    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES BOOK(book_id) ON DELETE CASCADE, -- ← AJOUTÉ !
     INDEX idx_active_borrow (user_id, book_id, is_returned)
 ) ENGINE=InnoDB;
 

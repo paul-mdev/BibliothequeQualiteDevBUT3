@@ -5,7 +5,6 @@ import Accueil from '../pages/PageAccueil.vue'
 import Statistiques from '../pages/PageStatistiques.vue'
 import Livre from '../pages/PageLivre.vue'
 import Login from '../pages/PageLogin.vue'
-import Parametres from '../pages/PageParametres.vue'
 import Gestion from '../pages/PageGestionLivre.vue'
 import AjouterLivre from '../pages/PageAjouterLivre.vue'
 import ModifierLivre from '../pages/PageModifierLivre.vue'
@@ -24,10 +23,8 @@ import { userState, fetchUser, hasRight } from '@/stores/user'
 const routes = [
   // Routes publiques (accessibles sans authentification spécifique)
   { path: '/', component: Accueil },
-  { path: '/statistiques', component: Statistiques },
   { path: '/livre/:id', component: Livre },
   { path: '/login', component: Login },
-  { path: '/parametres', component: Parametres },
   { path: '/compte', component: Compte },
 
   // ===== ROUTES PROTÉGÉES PAR DROITS =====
@@ -54,9 +51,16 @@ const routes = [
     component: GestionUtilisateur,
     meta: { requiresRight: 'gerer_utilisateurs' }
   },
-
-  // Gestion des emprunts (pas de droit spécifié, mais nécessite d'être connecté)
-  { path: '/gestion/emprunts', component: Emprunts },
+  {
+    path: '/statistiques',
+    component: Statistiques,
+    meta: { requiresRight: 'gerer_utilisateurs' }
+  },
+  {
+    path: '/gestion/emprunts',
+    component: Emprunts,
+    meta: { requiresRight: 'gerer_utilisateurs' }
+  }
 ]
 
 /**
@@ -78,11 +82,9 @@ const router = createRouter({
  * @param {Function} next - Fonction pour continuer/rediriger la navigation
  */
 router.beforeEach(async (to, from, next) => {
-  console.log('[ROUTER GUARD] 🚀 Tentative d\'accès à :', to.path)
 
   // ===== EXCEPTION : Page login toujours accessible =====
   if (to.path === '/login') {
-    console.log('[ROUTER GUARD] ✅ Page login → accès autorisé')
     return next()
   }
 
@@ -90,13 +92,10 @@ router.beforeEach(async (to, from, next) => {
     // ===== RÉCUPÉRATION DES DONNÉES UTILISATEUR =====
     // Appel au store pour charger/rafraîchir les infos utilisateur
     await fetchUser()
-    console.log('[ROUTER GUARD] 👤 Utilisateur :', userState.user?.user_name)
-    console.log('[ROUTER GUARD] 🔑 Droits :', userState.rights)
 
     // ===== VÉRIFICATION AUTHENTIFICATION =====
     // Si l'utilisateur n'est pas connecté, redirection vers login
     if (!userState.isLoggedIn) {
-      console.log('[ROUTER GUARD] ❌ Non connecté → redirection login')
       return next({
         path: '/login',
         // Sauvegarde l'URL demandée pour rediriger après connexion
@@ -108,26 +107,22 @@ router.beforeEach(async (to, from, next) => {
     // Si la route nécessite un droit particulier (défini dans meta)
     if (to.meta.requiresRight) {
       const requiredRight = to.meta.requiresRight
-      console.log(`[ROUTER GUARD] 🔒 Droit requis : "${requiredRight}"`)
 
       // Vérification si l'utilisateur possède le droit
       if (!hasRight(requiredRight)) {
-        console.log(`[ROUTER GUARD] ❌ Droit manquant → redirection accueil`)
         alert(`Accès refusé : vous n'avez pas le droit "${requiredRight}"`)
         return next('/')
       }
-
-      console.log(`[ROUTER GUARD] ✅ Droit "${requiredRight}" présent`)
     }
 
     // ===== AUTORISATION DE NAVIGATION =====
-    console.log('[ROUTER GUARD] ✅ Accès autorisé')
+    console.log('[ROUTER GUARD] Accès autorisé')
     next()
 
   } catch (err) {
     // ===== GESTION DES ERREURS =====
     // En cas d'erreur (ex: problème réseau), redirection vers login
-    console.error('[ROUTER GUARD] ⚠️ Erreur :', err)
+    console.error('[ROUTER GUARD] Erreur :', err)
     return next({
       path: '/login',
       query: { redirect: to.fullPath }

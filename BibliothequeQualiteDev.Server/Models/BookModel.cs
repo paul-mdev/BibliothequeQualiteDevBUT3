@@ -1,4 +1,4 @@
-﻿using System.Reflection.Metadata;
+using System.Reflection.Metadata;
 
 public class BookModel
 {
@@ -9,5 +9,7 @@ public class BookModel
 
     public DateTime book_date { get; set; }       // Date de publication
     public string? book_image_ext { get; set; }   // Extension de l'image (ex: .jpg) → null si pas d'image
-}
 
+    // Navigation inverse recommandée pour cascade propre
+    public virtual ICollection<BorrowedModel> Borrowed { get; set; } = new List<BorrowedModel>();
+}

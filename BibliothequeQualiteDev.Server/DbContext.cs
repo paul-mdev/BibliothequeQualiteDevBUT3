@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using BibliothequeQualiteDev.Server.Models;
 
-/// <summary>
 /// ===== CONTEXTE DE BASE DE DONNÉES =====
 /// Gère toutes les interactions avec la base de données MySQL
 /// Définit les tables (DbSet) et leurs relations
@@ -13,12 +12,9 @@ using BibliothequeQualiteDev.Server.Models;
 /// - RIGHTS : Droits d'accès (gerer_livres, etc.)
 /// - BORROWED : Emprunts de livres
 /// - LIBRARY_STOCK : Gestion du stock
-/// </summary>
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-    {
-    }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     // ===== DÉFINITION DES TABLES (DbSet) =====
     // Chaque DbSet correspond à une table dans la base de données
@@ -31,17 +27,14 @@ public class AppDbContext : DbContext
     public DbSet<RoleRightsModel> ROLE_RIGHTS => Set<RoleRightsModel>();
     public DbSet<DelayModel> DELAY => Set<DelayModel>();
 
-    /// <summary>
     /// ===== CONFIGURATION DU MODÈLE =====
     /// Méthode appelée lors de la création du modèle
     /// Configure les clés primaires, relations et contraintes
-    /// </summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // ========================================
         // DÉFINITION DES CLÉS PRIMAIRES
         // ========================================
-
         modelBuilder.Entity<BookModel>()
             .HasKey(b => b.book_id);
 
@@ -72,7 +65,6 @@ public class AppDbContext : DbContext
         // RELATIONS ROLE_RIGHTS (Many-to-Many)
         // ========================================
         // Table de liaison entre ROLES et RIGHTS
-
         // Relation RoleRights → Role
         modelBuilder.Entity<RoleRightsModel>()
             .HasOne(rr => rr.role)              // Un RoleRight a un Role
@@ -91,7 +83,6 @@ public class AppDbContext : DbContext
         // RELATION USERS → ROLES (Many-to-One)
         // ========================================
         // Chaque utilisateur a un rôle
-
         modelBuilder.Entity<UsersModel>()
             .HasOne(u => u.role)                // Un User a un Role
             .WithMany(r => r.users)             // Un Role a plusieurs Users
@@ -102,7 +93,7 @@ public class AppDbContext : DbContext
         // RELATION LIBRARY_STOCK → BOOK (One-to-One)
         // ========================================
         // Chaque livre a une entrée de stock unique
-
+        // === LIBRARY_STOCK 1:1 avec BOOK ===
         modelBuilder.Entity<LibraryStockModel>()
             .HasOne<BookModel>()                // Un Stock a un Book
             .WithOne()                          // Un Book a un Stock
@@ -113,7 +104,6 @@ public class AppDbContext : DbContext
         // RELATIONS BORROWED (CRITIQUES)
         // ========================================
         // Configuration explicite pour éviter les "shadow properties"
-
         modelBuilder.Entity<BorrowedModel>(entity =>
         {
             // ===== RELATION BORROWED → USER =====
@@ -126,7 +116,7 @@ public class AppDbContext : DbContext
             entity.HasOne(b => b.Book)
                   .WithMany()  // Pas de collection inverse nécessaire
                   .HasForeignKey(b => b.book_id)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.Cascade); // ← suppression cascade
 
             // ===== CONTRAINTE D'UNICITÉ =====
             // Un utilisateur ne peut emprunter qu'une seule fois le même livre
@@ -139,28 +129,3 @@ public class AppDbContext : DbContext
         base.OnModelCreating(modelBuilder);
     }
 }
-
-
-/// <summary>
-/// ===== EXPLICATIONS COMPLÉMENTAIRES =====
-/// 
-/// 1. CLÉS PRIMAIRES :
-///    - Identifient de manière unique chaque enregistrement
-///    - Auto-incrémentées dans la base de données
-/// 
-/// 2. CLÉS ÉTRANGÈRES :
-///    - Créent des liens entre les tables
-///    - Garantissent l'intégrité référentielle
-/// 
-/// 3. COMPORTEMENTS DE SUPPRESSION :
-///    - Cascade : Supprime les enregistrements liés
-///    - Restrict : Empêche la suppression si des liens existent
-/// 
-/// 4. EAGER LOADING vs LAZY LOADING :
-///    - Include() : Charge immédiatement les relations (Eager)
-///    - Sans Include : Chargement à la demande (Lazy, nécessite config)
-/// 
-/// 5. SHADOW PROPERTIES :
-///    - Propriétés créées automatiquement par EF Core
-///    - Évitées ici par configuration explicite des relations
-/// </summary>

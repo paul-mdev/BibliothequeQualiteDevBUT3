@@ -170,5 +170,50 @@ namespace BibliothequeQualiteDev.Server.Controllers
 
             return NoContent();
         }
+
+        [HttpGet("due-reminders")]
+        public async Task<IActionResult> GetDueReminders()
+        {
+            var userId = HttpContext.Session.GetInt32("user_id");
+            if (!userId.HasValue) return Unauthorized();
+
+            var today = DateTime.Today;
+            var thirtyDaysFromNow = today.AddDays(30);
+
+            var dueSoon = await _db.BORROWED
+                .Where(b => b.user_id == userId.Value
+                         && !b.is_returned
+                         && b.date_end >= today
+                         && b.date_end <= thirtyDaysFromNow)
+                .Include(b => b.Book)
+                .Select(b => new
+                {
+                    b.id_borrow,
+                    BookName = b.Book.book_name,
+                    b.date_end,
+                    DaysLeft = EF.Functions.DateDiffDay(today, b.date_end)
+                })
+                .OrderBy(b => b.date_end)
+                .ToListAsync();
+
+            bool hasCritical = dueSoon.Any(b => b.DaysLeft <= 5);
+            string message = hasCritical
+                ? "⚠️ Urgence : un ou plusieurs livres à rendre dans 5 jours ou moins !"
+                : "⏰ Rappel : un ou plusieurs livres à rendre dans moins de 30 jours.";
+
+            return Ok(new
+            {
+                hasReminder = dueSoon.Any(),
+                isCritical = hasCritical,
+                message,
+                details = dueSoon.Select(d => new
+                {
+                    d.id_borrow,
+                    bookName = d.BookName,
+                    date_end = d.date_end,
+                    daysLeft = d.DaysLeft
+                })
+            });
+        }
     }
 }

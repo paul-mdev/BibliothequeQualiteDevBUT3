@@ -76,10 +76,8 @@
       const res = await fetch('/book', { credentials: 'include' })
       if (res.ok) {
         books.value = await res.json()
-        console.log('📚 Livres chargés:', books.value.length)
       }
     } catch (err) {
-      console.error('Erreur fetchBooks:', err)
     }
   }
 

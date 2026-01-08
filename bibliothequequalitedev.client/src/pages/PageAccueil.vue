@@ -1,5 +1,28 @@
 <template>
   <div class="weather-component">
+    <!-- BANDEAU D'ALERTE ÉCHÉANCE -->
+    <div v-if="reminder.hasReminder" class="due-alert-banner" :class="{ 'critical': reminder.isCritical }">
+      <div class="alert-content">
+        <strong>{{ reminder.message }}</strong>
+        <button @click="showDetails = !showDetails" class="toggle-btn">
+          {{ showDetails ? 'Masquer' : 'Voir les livres concernés' }}
+        </button>
+      </div>
+      <transition name="slide">
+        <div v-if="showDetails" class="alert-details">
+          <ul>
+            <li v-for="item in reminder.details" :key="item.id_borrow">
+              <strong>{{ item.bookName }}</strong>
+              — à rendre le <strong>{{ formatDate(item.date_end) }}</strong>
+              <span class="days-left" :class="{ 'very-soon': item.daysLeft <= 5 }">
+                ({{ item.daysLeft }} jour{{ item.daysLeft > 1 ? 's' : '' }} restant{{ item.daysLeft <= 5 ? ' !' : '' }})
+              </span>
+            </li>
+          </ul>
+        </div>
+      </transition>
+    </div>
+
     <h1>Répertoire des livres</h1>
 
     <!-- ===== BARRE DE RECHERCHE ===== -->
@@ -68,6 +91,32 @@
    * Charge la liste des livres et leurs stocks disponibles
    * Utilise Promise.all pour paralléliser les requêtes de stock
    */
+  const reminder = ref({
+    hasReminder: false,
+    isCritical: false,
+    message: '',
+    details: []
+  })
+  const showDetails = ref(false)
+
+  const fetchDueReminder = async () => {
+    try {
+      const res = await fetch('/users/due-reminders', { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        reminder.value = {
+          hasReminder: data.hasReminder || false,
+          isCritical: data.isCritical || false,
+          message: data.message || '',
+          details: data.details || []
+        }
+      }
+    } catch (err) {
+      console.error('Erreur chargement rappel échéance:', err)
+    }
+  }
+
+  // === Chargement des livres et stocks ===
   const fetchData = async () => {
     loading.value = true
     try {
@@ -133,7 +182,14 @@
 
   // ===== CYCLE DE VIE =====
   // Charge les données au montage du composant
-  onMounted(fetchData)
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('fr-FR')
+  }
+
+  onMounted(async () => {
+    await fetchData()
+    await fetchDueReminder() // Chargement du rappel dès l'ouverture
+  })
 </script>
 
 <style scoped>
@@ -143,7 +199,101 @@
     margin: 0 auto;
   }
 
-  /* ===== BARRE DE RECHERCHE ===== */
+
+  /* === Bandeau alerte échéance === */
+  .due-alert-banner {
+    background: #ff9800;
+    color: white;
+    padding: 16px 20px;
+    text-align: center;
+    font-weight: 600;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  }
+
+    .due-alert-banner.critical {
+      background: #f44336;
+      animation: pulse 2s infinite;
+    }
+
+  .alert-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .toggle-btn {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid white;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+
+    .toggle-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+  .alert-details {
+    margin-top: 12px;
+    background: rgba(0,0,0,0.15);
+    padding: 12px;
+    border-radius: 6px;
+    text-align: left;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+    .alert-details ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .alert-details li {
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+  .days-left {
+    margin-left: 10px;
+    font-weight: bold;
+  }
+
+  .very-soon {
+    color: #ffff00;
+  }
+
+  @keyframes pulse {
+    0% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.85;
+    }
+
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .slide-enter-active, .slide-leave-active {
+    transition: all 0.3s ease;
+  }
+
+  .slide-enter-from, .slide-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  /* === Reste du style existant === */
   .search {
     margin-bottom: 1.5rem;
     padding: 0.8rem;
@@ -159,7 +309,7 @@
     width: 100%;
     border-collapse: collapse;
     background: var(--color-background-soft, #fff);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     border-radius: 8px;
     overflow: hidden;
   }
@@ -192,6 +342,13 @@
     font-weight: bold;
   }
 
+  .loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 1.2rem;
+    color: #666;
+  }
+
   /* ===== MODE SOMBRE ===== */
   @media (prefers-color-scheme: dark) {
     .row:hover {
@@ -209,12 +366,5 @@
     td {
       border-bottom-color: #334155;
     }
-  }
-
-  .loading {
-    text-align: center;
-    padding: 40px;
-    font-size: 1.2rem;
-    color: #666;
   }
 </style>

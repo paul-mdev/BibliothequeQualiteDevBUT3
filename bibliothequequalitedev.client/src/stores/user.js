@@ -20,11 +20,9 @@ export async function fetchUser() {
     userState.isLoggedIn = true
     userState.rights = u.role?.rights || [] // ⭐ Récupère les droits
 
-    console.log('📦 User store - Utilisateur:', u.user_name)
-    console.log('📦 User store - Droits:', userState.rights)
     return true
   } catch (err) {
-    console.error('⚠️ Erreur fetchUser:', err)
+    console.error('Erreur fetchUser:', err)
     userState.user = null
     userState.isLoggedIn = false
     userState.rights = []
