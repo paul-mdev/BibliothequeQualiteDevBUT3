@@ -12,6 +12,9 @@
     padding: 1.5rem 1rem;
     font-size: 0.9rem;
     border-top: 1px solid var(--color-border);
-    margin-top: auto; /* Important pour un layout flex sur App.vue */
+    /* ===== IMPORTANT POUR LE LAYOUT ===== */
+    /* margin-top: auto pousse le footer en bas de page
+       quand utilisé avec display: flex sur le parent (App.vue) */
+    margin-top: auto;
   }
 </style>
