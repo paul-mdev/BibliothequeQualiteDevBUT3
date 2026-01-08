@@ -3,21 +3,28 @@ SET FOREIGN_KEY_CHECKS=0;
 
 -- ROLES
 INSERT INTO ROLES VALUES
-(1,'Administrateur'),(2,'Bibliothecaire'),
-(3,'Etudiant'),(4,'Professeur');
+(1,'Administrateur'),
+(2,'Bibliothecaire'),
+(3,'Etudiant'),
+(4,'Professeur');
 
 -- RIGHTS
 INSERT INTO RIGHTS VALUES
-(1,'emprunter_livre'),(2,'prolonger_emprunt'),
-(3,'reserver_livre'),(4,'gerer_utilisateurs'),
-(5,'gerer_livres'),(6,'gerer_stock'),(7,'voir_retards');
+(1,'gerer_utilisateurs'),
+(2,'gerer_livres'),
+(3,'gerer_stock');
 
 -- ROLE_RIGHTS
-INSERT INTO ROLE_RIGHTS VALUES
-(1,1),(1,2),(1,3),(1,4),(1,5),(1,6),(1,7),
-(2,1),(2,2),(2,3),(2,5),(2,6),(2,7),
-(3,1),(3,3),
-(4,1),(4,2),(4,3);
+-- Admin
+INSERT INTO ROLE_RIGHTS (role_id, right_id) VALUES
+(1,1),
+(1,2),
+(1,3);
+
+-- Bibliothecaire
+INSERT INTO ROLE_RIGHTS (role_id, right_id) VALUES
+(2,2),
+(2,3);
 
 -- USERS (mot de passe : "password" hashé avec bcrypt pour tous)
 INSERT INTO USERS (user_id, user_pswd, user_name, user_mail, role_id) VALUES

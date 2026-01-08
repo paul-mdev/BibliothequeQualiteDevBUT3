@@ -13,59 +13,91 @@ public class AuthController : ControllerBase
         _db = db;
     }
 
-    [HttpPost("register")]
-    public IActionResult Register([FromBody] UsersModel user)
+    public class RegisterDTO
     {
-        if (_db.USERS.Any(u => u.user_mail == user.user_mail))
-            return BadRequest("Email already exists");
+        public string user_name { get; set; } = string.Empty;
+        public string user_mail { get; set; } = string.Empty;
+        public string user_pswd { get; set; } = string.Empty;
+    }
 
-        user.role_id = 3; // rôle étudiant par défaut
-        user.user_pswd = BCrypt.Net.BCrypt.HashPassword(user.user_pswd); // ← Hash le mot de passe
+    public class LoginDTO
+    {
+        public string user_mail { get; set; } = string.Empty;
+        public string user_pswd { get; set; } = string.Empty;
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterDTO dto)
+    {
+        if (_db.USERS.Any(u => u.user_mail == dto.user_mail))
+            return BadRequest("Email déjà utilisé");
+
+        var user = new UsersModel
+        {
+            user_name = dto.user_name,
+            user_mail = dto.user_mail,
+            user_pswd = BCrypt.Net.BCrypt.HashPassword(dto.user_pswd),
+            role_id = 3 // Étudiant par défaut
+        };
 
         _db.USERS.Add(user);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
+        // Session
         HttpContext.Session.SetInt32("user_id", user.user_id);
         HttpContext.Session.SetString("user_mail", user.user_mail);
         return Ok(new { user.user_id, user.user_mail });
     }
 
     [HttpPost("login")]
-    public IActionResult Login([FromBody] UsersModel login)
+    public async Task<IActionResult> Login([FromBody] LoginDTO dto)
     {
-        var user = _db.USERS.FirstOrDefault(u => u.user_mail == login.user_mail);
+        var user = await _db.USERS
+            .Include(u => u.role)
+            .FirstOrDefaultAsync(u => u.user_mail == dto.user_mail);
 
-        // ← Vérification avec bcrypt
-        if (user == null || !BCrypt.Net.BCrypt.Verify(login.user_pswd, user.user_pswd))
-            return Unauthorized("Invalid email or password");
+        if (user == null)
+            return Unauthorized("Email ou mot de passe incorrect");
 
+        // Vérifier le mot de passe hashé
+        if (!BCrypt.Net.BCrypt.Verify(dto.user_pswd, user.user_pswd))
+            return Unauthorized("Email ou mot de passe incorrect");
+
+        // Session
         HttpContext.Session.SetInt32("user_id", user.user_id);
         HttpContext.Session.SetString("user_mail", user.user_mail);
-        return Ok(new { user.user_id, user.user_mail });
+
+        return Ok(new
+        {
+            user.user_id,
+            user.user_mail,
+            user.user_name,
+            role = new
+            {
+                user.role.role_id,
+                user.role.role_name
+            }
+        });
     }
 
-    public class UserMeDto
-    {
-        public int user_id { get; set; }
-        public string user_mail { get; set; }
-        public string role_name { get; set; }
-        public List<string> rights { get; set; }
-       
-    }
     [HttpGet("me")]
     public async Task<IActionResult> Me()
     {
         var userId = HttpContext.Session.GetInt32("user_id");
         if (userId == null) return Unauthorized();
 
-
         var user = await _db.USERS
-            .Include(u => u.role)          // charge le rôle
-            .ThenInclude(r => r.role_rights) // charge les droits du rôle
+            .Include(u => u.role)
+            .ThenInclude(r => r.role_rights)
             .ThenInclude(rr => rr.right)
             .FirstOrDefaultAsync(u => u.user_id == userId);
 
         if (user == null) return Unauthorized();
+
+        // Créer la liste des droits
+        var rights = user.role?.role_rights?
+            .Select(rr => rr.right.right_name)
+            .ToList() ?? new List<string>();
 
         return Ok(new
         {
@@ -76,11 +108,10 @@ public class AuthController : ControllerBase
             {
                 user.role.role_id,
                 user.role.role_name,
-                rights = user.role.role_rights.Select(rr => rr.right.right_name).ToList()
+                rights = rights
             }
         });
     }
-
 
     [HttpPost("logout")]
     public IActionResult Logout()

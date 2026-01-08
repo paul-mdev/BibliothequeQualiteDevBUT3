@@ -1,41 +1,19 @@
-<script setup>
-  import { computed, onMounted } from 'vue'
-  import { useRouter } from 'vue-router'
-  import { userState, fetchUser } from '@/stores/user'
-
-  const router = useRouter()
-
-  // Computed pour que le template réagisse aux changements du store
-  const isAdmin = computed(() => userState.isAdmin)
-  const isLoggedIn = computed(() => userState.isLoggedIn)
-
-  const logout = async () => {
-    await fetch('/auth/logout', { method: 'POST', credentials: 'include' })
-    userState.user = null
-    userState.isLoggedIn = false
-    userState.isAdmin = false
-    router.push('/login')
-  }
-
-  onMounted(() => {
-    fetchUser()
-  })
-</script>
-
 <template>
   <header class="site-header">
     <nav class="nav">
       <ul>
         <li><router-link to="/">Accueil</router-link></li>
         <li><router-link to="/statistiques">Statistiques</router-link></li>
+        <li><router-link to="/compte">Compte</router-link></li>
 
-        <li v-if="isAdmin">
+        <!-- ⭐ Affichage basé sur les droits -->
+        <li v-if="hasGererLivres">
           <router-link to="/gestion/livres">Gestion des livres</router-link>
         </li>
-        <li v-if="isAdmin">
+        <li v-if="hasGererUtilisateurs">
           <router-link to="/gestion/utilisateurs">Gestion des utilisateurs</router-link>
         </li>
-        <li v-if="isAdmin">
+        <li v-if="hasGererLivres">
           <router-link to="/gestion/emprunts">Gestion des emprunts</router-link>
         </li>
 
@@ -43,13 +21,51 @@
           <router-link to="/login">Connexion</router-link>
         </li>
         <li v-else>
+          <span class="user-info">{{ userState.user?.user_name }}</span>
           <button @click="logout" class="logout-btn">Déconnexion</button>
         </li>
-
       </ul>
     </nav>
   </header>
 </template>
+
+<script setup>
+  import { computed, onMounted } from 'vue'
+  import { useRouter } from 'vue-router'
+  import { userState, fetchUser, hasRight } from '@/stores/user'
+
+  const router = useRouter()
+
+  // ⭐ Computed pour réagir aux changements du store
+  const isLoggedIn = computed(() => userState.isLoggedIn)
+  const hasGererLivres = computed(() => hasRight('gerer_livres'))
+  const hasGererUtilisateurs = computed(() => hasRight('gerer_utilisateurs'))
+  //const hasGererEmprunts = computed(() => hasRight('gerer_emprunts'))
+
+  
+
+  const logout = async () => {
+    try {
+      await fetch('/auth/logout', { method: 'POST', credentials: 'include' })
+      userState.user = null
+      userState.isLoggedIn = false
+      userState.rights = []
+      router.push('/login')
+    } catch (err) {
+      console.error('Erreur déconnexion:', err)
+    }
+  }
+
+  onMounted(() => {
+    fetchUser()
+  })
+
+  // ⭐ Rafraîchir après chaque navigation
+  router.afterEach(() => {
+    fetchUser()
+  })
+</script>
+
 
 <style scoped>
   .site-header {

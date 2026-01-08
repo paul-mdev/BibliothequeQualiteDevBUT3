@@ -7,9 +7,6 @@ const app = createApp(App)
 app.use(router)
 app.mount('#app')
 
-
-
-console.log("hejiafoijfeijohezghhiouzehiouzeghioue")
 fetch('/auth/me', { credentials: 'include' })
   .then(r => r.json())
   .then(user => console.log('Mon utilisateur:', user))

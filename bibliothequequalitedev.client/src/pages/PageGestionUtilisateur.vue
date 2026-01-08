@@ -1,11 +1,12 @@
+
 <template>
   <div v-if="loading">
     <p>Chargement...</p>
   </div>
 
-  <div v-else-if="user && user.role.role_name === 'Administrateur'" class="gestion-page">
+  <div v-else-if="canManageUsers" class="gestion-page">
     <h1>Gestion des utilisateurs</h1>
-    <p>Bienvenue {{ user.user_name }}, vous pouvez gérer les utilisateurs.</p>
+    <p>Bienvenue {{ userState.user?.user_name }}, vous pouvez gérer les utilisateurs.</p>
 
     <button @click="addUser">Ajouter un utilisateur</button>
 
@@ -24,7 +25,7 @@
           <td>{{ u.user_id }}</td>
           <td>{{ u.user_name }}</td>
           <td>{{ u.user_mail }}</td>
-          <td>{{ roleName(u.role_id) }}</td>
+          <td>{{ u.role_name || 'N/A' }}</td>
           <td>
             <button @click="editUser(u.user_id)">Modifier</button>
             <button @click="deleteUser(u.user_id)">Supprimer</button>
@@ -40,10 +41,12 @@
         <input v-model="form.user_name" placeholder="Nom" />
         <input v-model="form.user_mail" placeholder="Email" />
         <select v-model="form.role_id">
+          <option value="" disabled>-- Sélectionnez un rôle --</option>
           <option v-for="r in roles" :key="r.role_id" :value="r.role_id">
             {{ r.role_name }}
           </option>
         </select>
+        <small style="color: #666;">{{ roles.length }} rôles disponibles</small>
         <input v-if="isNewUser" type="password" v-model="form.user_pswd" placeholder="Mot de passe" />
 
         <div class="modal-buttons">
@@ -60,23 +63,14 @@
 </template>
 
 <script setup>
-  import { ref, onMounted } from 'vue'
+  import { ref, computed, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
-
-  onMounted(() => {
-    console.log("hejiafoijfeijohezghhiouzehiouzegfeeeeeeeeeffefeefeffehioue")
-    fetch('/auth/me', { credentials: 'include' })
-      .then(r => r.json())
-      .then(user => console.log('Mon utilisateur:', user))
-      .catch(err => console.error('Erreur fetch:', err))
-  })
-
+  import { userState, fetchUser, hasRight } from '@/stores/user'
 
   const router = useRouter()
   const users = ref([])
   const roles = ref([])
-  const user = ref(null) // ⭐ Ajout de la variable user
-  const loading = ref(true) // ⭐ Ajout du state de chargement
+  const loading = ref(true)
   const showForm = ref(false)
   const formLabel = ref('Ajouter un utilisateur')
   const isNewUser = ref(true)
@@ -88,52 +82,60 @@
     role_id: 1
   })
 
+  // ⭐ Computed pour vérifier le droit
+  const canManageUsers = computed(() => hasRight('gerer_utilisateurs'))
+
   // ⭐ Récupération des infos utilisateur connecté
   const fetchCurrentUser = async () => {
     try {
-      const res = await fetch('/auth/me', { credentials: 'include' })
-      if (!res.ok) {
-        router.push('/login')
-        return
-      }
-      user.value = await res.json()
-      console.log('Utilisateur connecté:', user.value)
+      await fetchUser()
 
-      // Vérification du rôle
-      if (user.value.role.role_name !== 'Administrateur') {
-        alert('Accès refusé : vous devez être administrateur')
+      // Vérification du droit
+      if (!hasRight('gerer_utilisateurs')) {
+        alert('Accès refusé : vous n\'avez pas le droit de gérer les utilisateurs')
         router.push('/')
+        return false
       }
+
+      return true
     } catch (err) {
       console.error('Erreur récupération utilisateur:', err)
       router.push('/login')
+      return false
     } finally {
       loading.value = false
     }
   }
 
   const fetchUsers = async () => {
-    const res = await fetch('/users', { credentials: 'include' })
-    if (res.ok) users.value = await res.json()
+    try {
+      const res = await fetch('/users', { credentials: 'include' })
+      if (res.ok) {
+        users.value = await res.json()
+      }
+    } catch (err) {
+      console.error('Erreur fetchUsers:', err)
+    }
   }
 
   const fetchRoles = async () => {
-    const res = await fetch('/roles', { credentials: 'include' })
-    if (res.ok) roles.value = await res.json()
+    try {
+      const res = await fetch('/roles', { credentials: 'include' })
+      if (res.ok) {
+        roles.value = await res.json()
+      }
+    } catch (err) {
+      console.error('Erreur fetchRoles:', err)
+    }
   }
 
   onMounted(async () => {
-    await fetchCurrentUser() // ⭐ D'abord vérifier l'utilisateur
-    if (user.value && user.value.role.role_name === 'Administrateur') {
+    const hasAccess = await fetchCurrentUser()
+    if (hasAccess) {
       await fetchUsers()
       await fetchRoles()
     }
   })
-
-  const roleName = (roleId) => {
-    const r = roles.value.find(r => r.role_id === roleId)
-    return r ? r.role_name : 'Inconnu'
-  }
 
   const addUser = () => {
     isNewUser.value = true
@@ -143,42 +145,65 @@
   }
 
   const editUser = async (id) => {
-    const res = await fetch(`/users/${id}`, { credentials: 'include' })
-    if (!res.ok) return alert('Erreur récupération utilisateur')
-    const u = await res.json()
-    form.value = { ...u, user_pswd: '' }
-    isNewUser.value = false
-    formLabel.value = 'Modifier utilisateur'
-    showForm.value = true
+    try {
+      const res = await fetch(`/users/${id}`, { credentials: 'include' })
+      if (!res.ok) return alert('Erreur récupération utilisateur')
+      const u = await res.json()
+      form.value = { ...u, user_pswd: '' }
+      isNewUser.value = false
+      formLabel.value = 'Modifier utilisateur'
+      showForm.value = true
+    } catch (err) {
+      console.error('Erreur editUser:', err)
+      alert('Erreur lors de la récupération de l\'utilisateur')
+    }
   }
-
 
   const deleteUser = async (id) => {
     if (!confirm('Supprimer cet utilisateur ?')) return
-    const res = await fetch(`/users/${id}`, { method: 'DELETE', credentials: 'include' })
-    if (res.ok) users.value = users.value.filter(u => u.user_id !== id)
-    else alert('Erreur suppression')
+    try {
+      const res = await fetch(`/users/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+      if (res.ok) {
+        await fetchUsers()
+      } else {
+        alert('Erreur suppression')
+      }
+    } catch (err) {
+      console.error('Erreur deleteUser:', err)
+      alert('Erreur lors de la suppression')
+    }
   }
 
   const submitForm = async () => {
     const payload = { ...form.value }
-    if (isNewUser.value && !payload.user_pswd) return alert('Mot de passe requis')
+    if (isNewUser.value && !payload.user_pswd) {
+      return alert('Mot de passe requis')
+    }
+
     const method = isNewUser.value ? 'POST' : 'PUT'
     const url = isNewUser.value ? '/users' : `/users/${payload.user_id}`
 
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      credentials: 'include'
-    })
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        credentials: 'include'
+      })
 
-    if (res.ok) {
-      showForm.value = false
-      await fetchUsers()
-    } else {
-      const text = await res.text()
-      alert('Erreur : ' + text)
+      if (res.ok) {
+        showForm.value = false
+        await fetchUsers()
+      } else {
+        const text = await res.text()
+        alert('Erreur : ' + text)
+      }
+    } catch (err) {
+      console.error('Erreur submitForm:', err)
+      alert('Erreur lors de la sauvegarde')
     }
   }
 
@@ -208,7 +233,12 @@
   button {
     margin: 0 0.25rem;
     padding: 0.25rem 0.5rem;
+    cursor: pointer;
   }
+
+    button:hover {
+      opacity: 0.8;
+    }
 
   .modal {
     position: fixed;
@@ -220,21 +250,40 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 1000;
   }
 
   .modal-content {
     background: white;
-    padding: 1rem;
+    padding: 1.5rem;
     border-radius: 6px;
     min-width: 300px;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   }
+
+    .modal-content h2 {
+      margin: 0 0 0.5rem 0;
+    }
+
+    .modal-content input,
+    .modal-content select {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
 
   .modal-buttons {
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
+    margin-top: 0.5rem;
   }
+
+    .modal-buttons button {
+      padding: 0.5rem 1rem;
+    }
 </style>
