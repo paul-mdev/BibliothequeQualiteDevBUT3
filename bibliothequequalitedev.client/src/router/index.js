@@ -48,7 +48,7 @@ const routes = [
     path: '/gestion/emprunts',
     component: Emprunts,
     meta: { requiresRight: 'gerer_livres' }
-  }
+  },
 
   // Nécessite le droit 'gerer_utilisateurs'
   {
