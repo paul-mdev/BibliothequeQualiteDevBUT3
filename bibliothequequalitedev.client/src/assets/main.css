@@ -1,6 +1,11 @@
-/* main.css */
+/* Import des variables CSS de base (couleurs, polices) */
 @import './base.css';
 
+/**
+ * ===== LAYOUT PRINCIPAL =====
+ * Utilise flexbox pour créer un layout sticky footer
+ * Le footer reste en bas même si le contenu est court
+ */
 #app {
   display: flex;
   flex-direction: column;
@@ -8,25 +13,31 @@
   margin: 0 auto;
 }
 
+/**
+ * Main prend tout l'espace disponible (flex: 1 dans App.vue)
+ * Pousse automatiquement le footer en bas
+ */
 main {
-  flex: 1; /* Pousse le footer en bas si le contenu est court */
+  flex: 1;
 }
 
-/* Liens généraux */
+/* ===== STYLES DES LIENS ===== */
 a {
   text-decoration: none;
-  color: var(--vt-c-indigo); /* Utilise la couleur indigo de la palette Vue */
+  color: var(--vt-c-indigo); /* Couleur de la palette Vue */
   transition: all 0.3s ease;
   padding: 2px 4px;
   border-radius: 4px;
 }
 
+  /* Effet hover : légère teinte de fond */
   a:hover {
-    background-color: hsla(210, 40%, 40%, 0.15); /* Légère teinte indigo au hover */
+    background-color: hsla(210, 40%, 40%, 0.15);
     color: var(--vt-c-indigo);
   }
 
-/* Classe utilitaire pour accents verts (si tu en as besoin ailleurs) */
+/* ===== CLASSE UTILITAIRE VERTE ===== */
+/* Pour les accents verts (si nécessaire) */
 .green {
   color: hsla(160, 100%, 37%, 1);
 }
@@ -35,7 +46,7 @@ a {
     background-color: hsla(160, 100%, 37%, 0.2);
   }
 
-/* Responsive : grands écrans (desktop) */
+/* ===== RESPONSIVE - DESKTOP ===== */
 @media (min-width: 1024px) {
   body {
     display: flex;
@@ -45,18 +56,17 @@ a {
 
   #app {
     padding: 3rem 2rem;
-    /* Optionnel : si tu veux un layout en deux colonnes sur certaines pages */
-    /* grid-template-columns: 1fr 1fr; */
   }
 }
 
-/* Mobile et tablette */
+/* ===== RESPONSIVE - TABLETTE ===== */
 @media (max-width: 768px) {
   #app {
     padding: 1.5rem 1rem;
   }
 }
 
+/* ===== RESPONSIVE - MOBILE ===== */
 @media (max-width: 480px) {
   #app {
     padding: 1rem 0.5rem;

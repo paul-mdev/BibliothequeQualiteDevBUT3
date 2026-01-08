@@ -25,13 +25,18 @@
 
     <h1>Répertoire des livres</h1>
 
+    <!-- ===== BARRE DE RECHERCHE ===== -->
+    <!-- Filtre les livres en temps réel -->
     <input type="text"
            v-model="search"
            placeholder="Rechercher un livre..."
            class="search" />
 
+    <!-- État de chargement -->
     <div v-if="loading" class="loading">Chargement...</div>
 
+    <!-- ===== TABLEAU DES LIVRES ===== -->
+    <!-- Affiché uniquement si des livres correspondent à la recherche -->
     <table v-else-if="filteredBooks.length > 0">
       <thead>
         <tr>
@@ -43,6 +48,8 @@
         </tr>
       </thead>
       <tbody>
+        <!-- Boucle sur les livres filtrés -->
+        <!-- Clic sur une ligne = navigation vers la page détail -->
         <tr v-for="book in filteredBooks"
             :key="book.book_id"
             @click="goToBook(book.book_id)"
@@ -52,6 +59,8 @@
           <td>{{ book.book_editor }}</td>
           <td>{{ new Date(book.book_date).toLocaleDateString() }}</td>
           <td>
+            <!-- Affichage du nombre d'exemplaires disponibles -->
+            <!-- Classe conditionnelle si stock épuisé -->
             <span :class="{ 'out-of-stock': availableCounts[book.book_id] === 0 }">
               {{ availableCounts[book.book_id] ?? '-' }}
             </span>
@@ -60,6 +69,7 @@
       </tbody>
     </table>
 
+    <!-- Message si aucun résultat -->
     <p v-else>Aucun livre trouvé.</p>
   </div>
 </template>
@@ -70,12 +80,17 @@
 
   const router = useRouter()
 
-  const loading = ref(true)
-  const books = ref([])
-  const search = ref('')
-  const availableCounts = ref({})
+  // ===== ÉTAT RÉACTIF =====
+  const loading = ref(true)           // Indicateur de chargement
+  const books = ref([])               // Liste complète des livres
+  const search = ref('')              // Texte de recherche
+  const availableCounts = ref({})     // Dictionnaire { book_id: nombre_disponible }
 
-  // === Gestion du rappel d'échéance ===
+  /**
+   * ===== RÉCUPÉRATION DES DONNÉES =====
+   * Charge la liste des livres et leurs stocks disponibles
+   * Utilise Promise.all pour paralléliser les requêtes de stock
+   */
   const reminder = ref({
     hasReminder: false,
     isCritical: false,
@@ -105,16 +120,26 @@
   const fetchData = async () => {
     loading.value = true
     try {
+      // Récupération de la liste des livres
       const response = await fetch('/book')
       if (!response.ok) throw new Error('Erreur réseau')
       books.value = await response.json()
 
+      /**
+       * ===== RÉCUPÉRATION PARALLÈLE DES STOCKS =====
+       * Crée une promesse par livre pour récupérer son stock
+       * Plus rapide que des requêtes séquentielles
+       */
       const countPromises = books.value.map(book =>
         fetch(`/book/${book.book_id}/available-count`)
-          .then(res => res.ok ? res.json() : 0)
-          .catch(() => 0)
+          .then(res => res.ok ? res.json() : 0)  // Retourne 0 si erreur
+          .catch(() => 0)                         // Retourne 0 si échec
       )
+
+      // Attend que toutes les promesses se terminent
       const counts = await Promise.all(countPromises)
+
+      // Construction du dictionnaire book_id => count
       books.value.forEach((book, index) => {
         availableCounts.value[book.book_id] = counts[index]
       })
@@ -127,19 +152,36 @@
     }
   }
 
+  /**
+   * Navigation vers la page détail d'un livre
+   * @param {number} id - ID du livre
+   */
   const goToBook = (id) => {
     router.push(`/livre/${id}`)
   }
 
+  /**
+   * ===== COMPUTED - FILTRAGE DES LIVRES =====
+   * Filtre la liste des livres en fonction du texte de recherche
+   * Recherche dans le nom et l'auteur du livre
+   * @returns {Array} Liste des livres filtrés
+   */
   const filteredBooks = computed(() => {
+    // Si pas de recherche, retourne tous les livres
     if (!search.value.trim()) return books.value
+
+    // Conversion en minuscules pour recherche insensible à la casse
     const lowerSearch = search.value.toLowerCase()
+
+    // Filtre sur nom et auteur
     return books.value.filter(book =>
       book.book_name.toLowerCase().includes(lowerSearch) ||
       book.book_author.toLowerCase().includes(lowerSearch)
     )
   })
 
+  // ===== CYCLE DE VIE =====
+  // Charge les données au montage du composant
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('fr-FR')
   }
@@ -156,6 +198,7 @@
     max-width: 1200px;
     margin: 0 auto;
   }
+
 
   /* === Bandeau alerte échéance === */
   .due-alert-banner {
@@ -261,6 +304,7 @@
     font-size: 1rem;
   }
 
+  /* ===== TABLEAU ===== */
   table {
     width: 100%;
     border-collapse: collapse;
@@ -282,6 +326,7 @@
     font-weight: 600;
   }
 
+  /* Ligne cliquable avec effet hover */
   .row {
     cursor: pointer;
     transition: background 0.2s;
@@ -291,6 +336,7 @@
       background-color: #f8fafc;
     }
 
+  /* Style pour stock épuisé */
   .out-of-stock {
     color: #e74c3c;
     font-weight: bold;
@@ -303,6 +349,7 @@
     color: #666;
   }
 
+  /* ===== MODE SOMBRE ===== */
   @media (prefers-color-scheme: dark) {
     .row:hover {
       background-color: #334155;

@@ -2,6 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BibliothequeQualiteDev.Server.Models;
 
+/// <summary>
+/// ===== CONTRÔLEUR DE GESTION DES RÔLES =====
+/// Fournit la liste des rôles disponibles
+/// Route de base : /roles
+/// Lecture seule (pas de création/modification de rôles via l'API)
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class RolesController : ControllerBase
@@ -13,7 +19,11 @@ public class RolesController : ControllerBase
         _db = db;
     }
 
-    // GET /roles
+    /// <summary>
+    /// ===== GET /roles =====
+    /// Liste tous les rôles disponibles
+    /// Utilisé pour remplir le select dans le formulaire utilisateur
+    /// </summary>
     [HttpGet]
     public async Task<ActionResult> GetRoles()
     {
@@ -28,7 +38,11 @@ public class RolesController : ControllerBase
         return Ok(roles);
     }
 
-    // GET /roles/{id}
+    /// <summary>
+    /// ===== GET /roles/{id} =====
+    /// Récupère un rôle spécifique
+    /// Peu utilisé dans l'application actuelle
+    /// </summary>
     [HttpGet("{id}")]
     public async Task<ActionResult> GetRole(int id)
     {
