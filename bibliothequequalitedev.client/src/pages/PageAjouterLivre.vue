@@ -62,7 +62,7 @@
 
 			if (!res.ok) {
 				const errorText = await res.text()
-				alert(errorText || 'Erreur lors de l'ajout du livre')
+				alert(errorText || 'Erreur lors de la création')
 				return
 			}
 
@@ -70,7 +70,7 @@
 			router.push('/gestion')
 		} catch (err) {
 			console.error(err)
-			alert('Erreur réseau lors de l'ajout')
+			alert('Erreur réseau lors de la création')
 		}
 	}
 </script>

@@ -3,7 +3,7 @@ import { reactive } from 'vue'
 export const userState = reactive({
   user: null,
   isLoggedIn: false,
-  rights: [] // ⭐ Liste des droits de l'utilisateur
+  rights: [] // Liste des droits de l'utilisateur
 })
 
 export async function fetchUser() {
@@ -18,7 +18,7 @@ export async function fetchUser() {
     const u = await res.json()
     userState.user = u
     userState.isLoggedIn = true
-    userState.rights = u.role?.rights || [] // ⭐ Récupère les droits
+    userState.rights = u.role?.rights || [] // Récupère les droits
 
     return true
   } catch (err) {
@@ -33,7 +33,7 @@ export async function fetchUser() {
 // ⭐ Fonction helper pour vérifier si l'utilisateur a un droit
 export function hasRight(rightName) {
   const result = userState.rights.includes(rightName)
-  console.log(`🔍 hasRight("${rightName}") = ${result}`) // ⚠️ CORRECTION ICI : parenthèses au lieu de backticks
+  console.log(`hasRight("${rightName}") = ${result}`) // CORRECTION ICI : parenthèses au lieu de backticks
   return result
 }
 
