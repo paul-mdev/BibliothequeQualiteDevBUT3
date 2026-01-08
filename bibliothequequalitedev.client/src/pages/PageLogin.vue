@@ -19,7 +19,7 @@
   </div>
 </template>
 
-<script setup>
+c<script setup>
   import { ref, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
 

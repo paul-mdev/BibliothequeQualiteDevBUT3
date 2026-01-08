@@ -12,7 +12,6 @@
     <table v-else-if="filteredBooks.length > 0">
       <thead>
         <tr>
-          <th>Id</th>
           <th>Nom</th>
           <th>Auteur</th>
           <th>Éditeur</th>
@@ -25,7 +24,6 @@
             :key="book.book_id"
             @click="goToBook(book.book_id)"
             class="row">
-          <td>{{ book.book_id }}</td>
           <td>{{ book.book_name }}</td>
           <td>{{ book.book_author }}</td>
           <td>{{ book.book_editor }}</td>

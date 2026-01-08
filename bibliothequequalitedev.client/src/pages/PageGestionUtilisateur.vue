@@ -1,3 +1,4 @@
+
 <template>
   <div v-if="loading">
     <p>Chargement...</p>
@@ -40,10 +41,12 @@
         <input v-model="form.user_name" placeholder="Nom" />
         <input v-model="form.user_mail" placeholder="Email" />
         <select v-model="form.role_id">
+          <option value="" disabled>-- Sélectionnez un rôle --</option>
           <option v-for="r in roles" :key="r.role_id" :value="r.role_id">
             {{ r.role_name }}
           </option>
         </select>
+        <small style="color: #666;">{{ roles.length }} rôles disponibles</small>
         <input v-if="isNewUser" type="password" v-model="form.user_pswd" placeholder="Mot de passe" />
 
         <div class="modal-buttons">
