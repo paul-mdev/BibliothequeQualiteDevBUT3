@@ -44,6 +44,11 @@ const routes = [
     component: ModifierLivre,
     meta: { requiresRight: 'gerer_livres' }
   },
+  {
+    path: '/gestion/emprunts',
+    component: Emprunts,
+    meta: { requiresRight: 'gerer_livres' }
+  }
 
   // Nécessite le droit 'gerer_utilisateurs'
   {
@@ -56,11 +61,6 @@ const routes = [
     component: Statistiques,
     meta: { requiresRight: 'gerer_utilisateurs' }
   },
-  {
-    path: '/gestion/emprunts',
-    component: Emprunts,
-    meta: { requiresRight: 'gerer_utilisateurs' }
-  }
 ]
 
 /**

@@ -1,4 +1,4 @@
-using Xunit;
+﻿using Xunit;
 using Moq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +33,7 @@ namespace BibliothequeQualiteDev.Tests.Controllers
             var session = new TestSession(sessionItems);
             httpContext.Features.Set<ISessionFeature>(new SessionFeature { Session = session });
 
-            // Utiliser SetInt32 APR�S avoir configur� le HttpContext
+            // Utiliser SetInt32 APRÈS avoir configuré le HttpContext
             if (userId.HasValue)
             {
                 httpContext.Session.SetInt32("user_id", userId.Value);
@@ -477,7 +477,7 @@ namespace BibliothequeQualiteDev.Tests.Controllers
         }
 
         [Fact]
-        public void GetBook_WithValidId_ReturnsBook()
+        public async Task GetBook_WithValidId_ReturnsBook()
         {
             var context = CreateInMemoryContext();
             context.BOOK.Add(new BookModel
@@ -486,24 +486,23 @@ namespace BibliothequeQualiteDev.Tests.Controllers
                 book_name = "Test Book",
                 book_author = "Author",
                 book_editor = "Editor",
-                book_date = System.DateTime.Now
+                book_date = DateTime.Now
             });
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var controller = new BookController(context);
-
-            var result = controller.GetBook(1);
+            var result = await controller.GetBook(1);
 
             Assert.IsType<OkObjectResult>(result);
         }
 
         [Fact]
-        public void GetBook_WithInvalidId_ReturnsNotFound()
+        public async Task GetBook_WithInvalidId_ReturnsNotFound()
         {
             var context = CreateInMemoryContext();
             var controller = new BookController(context);
 
-            var result = controller.GetBook(999);
+            var result = await controller.GetBook(999);
 
             Assert.IsType<NotFoundResult>(result);
         }
@@ -541,7 +540,7 @@ namespace BibliothequeQualiteDev.Tests.Controllers
         }
 
         [Fact]
-        public void DeleteBook_WithValidId_ReturnsNoContent()
+        public async Task DeleteBook_WithValidId_ReturnsNoContent()
         {
             var context = CreateInMemoryContext();
             context.BOOK.Add(new BookModel
@@ -550,26 +549,25 @@ namespace BibliothequeQualiteDev.Tests.Controllers
                 book_name = "ToDelete",
                 book_author = "Author",
                 book_editor = "Editor",
-                book_date = System.DateTime.Now
+                book_date = DateTime.Now
             });
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var controller = new BookController(context);
-
-            var result = controller.DeleteBook(1);
+            var result = await controller.DeleteBook(1);
 
             Assert.IsType<NoContentResult>(result);
         }
 
         [Fact]
-        public void DeleteBook_WithInvalidId_ReturnsNotFound()
+        public async Task DeleteBook_WithInvalidId_ReturnsNotFound()
         {
             var context = CreateInMemoryContext();
             var controller = new BookController(context);
 
-            var result = controller.DeleteBook(999);
+            var result = await controller.DeleteBook(999);
 
-            Assert.IsType<NotFoundResult>(result);
+            Assert.IsType<NotFoundObjectResult>(result); // ⭐ ObjectResult au lieu de Result
         }
     }
 
