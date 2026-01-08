@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using BibliothequeQualiteDev.Server.Models;
 using Microsoft.EntityFrameworkCore;
-
+using BCrypt.Net;
 
 [ApiController]
 [Route("[controller]")]
@@ -19,26 +19,28 @@ public class AuthController : ControllerBase
         if (_db.USERS.Any(u => u.user_mail == user.user_mail))
             return BadRequest("Email already exists");
 
-        user.role_id = 1; // rôle par défaut
+        user.role_id = 3; // rôle étudiant par défaut
+        user.user_pswd = BCrypt.Net.BCrypt.HashPassword(user.user_pswd); // ← Hash le mot de passe
+
         _db.USERS.Add(user);
         _db.SaveChanges();
 
-        // session
         HttpContext.Session.SetInt32("user_id", user.user_id);
         HttpContext.Session.SetString("user_mail", user.user_mail);
-
         return Ok(new { user.user_id, user.user_mail });
     }
 
     [HttpPost("login")]
     public IActionResult Login([FromBody] UsersModel login)
     {
-        var user = _db.USERS.FirstOrDefault(u => u.user_mail == login.user_mail && u.user_pswd == login.user_pswd);
-        if (user == null) return Unauthorized("Invalid email or password");
+        var user = _db.USERS.FirstOrDefault(u => u.user_mail == login.user_mail);
+
+        // ← Vérification avec bcrypt
+        if (user == null || !BCrypt.Net.BCrypt.Verify(login.user_pswd, user.user_pswd))
+            return Unauthorized("Invalid email or password");
 
         HttpContext.Session.SetInt32("user_id", user.user_id);
         HttpContext.Session.SetString("user_mail", user.user_mail);
-
         return Ok(new { user.user_id, user.user_mail });
     }
 

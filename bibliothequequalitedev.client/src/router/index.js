@@ -3,7 +3,6 @@ import Accueil from '../pages/PageAccueil.vue'
 import Statistiques from '../pages/PageStatistiques.vue'
 import Livre from '../pages/PageLivre.vue'
 import Login from '../pages/PageLogin.vue'
-import Parametres from '../pages/PageParametres.vue'
 import Gestion from '../pages/PageGestionLivre.vue'
 import AjouterLivre from '../pages/PageAjouterLivre.vue'
 import ModifierLivre from '../pages/PageModifierLivre.vue'
@@ -19,7 +18,6 @@ const routes = [
   { path: '/statistiques', component: Statistiques },
   { path: '/livre/:id', component: Livre },
   { path: '/login', component: Login },
-  { path: '/parametres', component: Parametres },
   { path: '/gestion/livres', component: Gestion, meta: { requiresAdmin: true } },
   { path: '/book/new', component: AjouterLivre },
   { path: '/livre/edit/:id', component: ModifierLivre },

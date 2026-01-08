@@ -1,21 +1,20 @@
 <template>
   <div class="login-page">
-    <h1>Login / Register</h1>
+    <h1>Connexion / Inscription</h1>
 
     <div v-if="!user">
-      <input v-model="user_mail" placeholder="Adresse email" />
-      <input v-model="user_pswd" type="password" placeholder="Mot de passe" />
-
+      <input v-model="user_mail" placeholder="Adresse email" type="email" required />
+      <input v-model="user_pswd" type="password" placeholder="Mot de passe" required />
       <button @click="login">Se connecter</button>
       <button @click="register">Créer un compte</button>
     </div>
 
     <div v-else>
-      <p>Connecté en tant que : {{ user.user_mail }}</p>
+      <p>Connecté en tant que : <strong>{{ user.user_mail }}</strong></p>
       <button @click="logout">Se déconnecter</button>
     </div>
 
-    <div v-if="error" style="color:red">{{ error }}</div>
+    <div v-if="error" class="error-message">{{ error }}</div>
   </div>
 </template>
 
@@ -24,20 +23,15 @@
   import { useRouter } from 'vue-router'
 
   const router = useRouter()
-
   const user_mail = ref('')
   const user_pswd = ref('')
   const user = ref(null)
   const error = ref('')
-
   const api = '/auth'
 
   async function fetchMe() {
     try {
-      const res = await fetch(`${api}/me`, {
-        credentials: 'include'
-      })
-
+      const res = await fetch(`${api}/me`, { credentials: 'include' })
       if (res.ok) {
         user.value = await res.json()
       } else {
@@ -58,18 +52,13 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          user_mail: user_mail.value,
-          user_pswd: user_pswd.value
-        })
+        body: JSON.stringify({ user_mail: user_mail.value, user_pswd: user_pswd.value })
       })
-
       if (!res.ok) throw new Error(await res.text())
-
       user.value = await res.json()
       router.push('/')
     } catch (err) {
-      error.value = err.message
+      error.value = err.message || 'Erreur de connexion'
     }
   }
 
@@ -81,48 +70,69 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          user_mail: user_mail.value,
-          user_pswd: user_pswd.value
-        })
+        body: JSON.stringify({ user_mail: user_mail.value, user_pswd: user_pswd.value })
       })
-
       if (!res.ok) throw new Error(await res.text())
-
       user.value = await res.json()
       router.push('/')
     } catch (err) {
-      error.value = err.message
+      error.value = err.message || 'Erreur lors de l’inscription'
     }
   }
 
   // LOGOUT
   async function logout() {
-    await fetch(`${api}/logout`, {
-      method: 'POST',
-      credentials: 'include'
-    })
+    await fetch(`${api}/logout`, { method: 'POST', credentials: 'include' })
     user.value = null
+    router.push('/login')
   }
 </script>
-
 
 <style scoped>
   .login-page {
     max-width: 400px;
-    margin: 3rem auto;
+    margin: 6rem auto;
+    padding: 2rem;
+    background: var(--color-background-soft, #fff);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     text-align: center;
   }
 
     .login-page input {
       display: block;
-      margin: 0.5rem auto;
-      width: 80%;
-      padding: 0.5rem;
+      width: 100%;
+      padding: 12px;
+      margin: 12px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
     }
 
     .login-page button {
-      margin: 0.5rem;
-      padding: 0.5rem 1rem;
+      padding: 12px 24px;
+      margin: 10px;
+      background: var(--vt-c-indigo, #3b82f6);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
     }
+
+      .login-page button:hover {
+        background: #2563eb;
+      }
+
+  .error-message {
+    color: #e74c3c;
+    margin-top: 1rem;
+    font-weight: bold;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .login-page {
+      background: #1e293b;
+    }
+  }
 </style>

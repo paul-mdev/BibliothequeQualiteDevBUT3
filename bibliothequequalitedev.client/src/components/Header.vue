@@ -28,7 +28,6 @@
       <ul>
         <li><router-link to="/">Accueil</router-link></li>
         <li><router-link to="/statistiques">Statistiques</router-link></li>
-        <li><router-link to="/parametres">Paramètres</router-link></li>
 
         <li v-if="isAdmin">
           <router-link to="/gestion/livres">Gestion des livres</router-link>

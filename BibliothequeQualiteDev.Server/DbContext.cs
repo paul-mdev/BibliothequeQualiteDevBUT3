@@ -3,9 +3,7 @@ using BibliothequeQualiteDev.Server.Models;
 
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-    {
-    }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     public DbSet<BookModel> BOOK => Set<BookModel>();
     public DbSet<UsersModel> USERS => Set<UsersModel>();
@@ -19,29 +17,14 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // === Clés primaires ===
-        modelBuilder.Entity<BookModel>()
-            .HasKey(b => b.book_id);
-
-        modelBuilder.Entity<UsersModel>()
-            .HasKey(u => u.user_id);
-
-        modelBuilder.Entity<RolesModel>()
-            .HasKey(r => r.role_id);
-
-        modelBuilder.Entity<RightsModel>()
-            .HasKey(r => r.right_id);
-
-        modelBuilder.Entity<RoleRightsModel>()
-            .HasKey(rr => new { rr.role_id, rr.right_id });
-
-        modelBuilder.Entity<DelayModel>()
-            .HasKey(d => d.delay_id);
-
-        modelBuilder.Entity<LibraryStockModel>()
-            .HasKey(s => s.book_id);
-
-        modelBuilder.Entity<BorrowedModel>()
-            .HasKey(b => b.id_borrow);
+        modelBuilder.Entity<BookModel>().HasKey(b => b.book_id);
+        modelBuilder.Entity<UsersModel>().HasKey(u => u.user_id);
+        modelBuilder.Entity<RolesModel>().HasKey(r => r.role_id);
+        modelBuilder.Entity<RightsModel>().HasKey(r => r.right_id);
+        modelBuilder.Entity<RoleRightsModel>().HasKey(rr => new { rr.role_id, rr.right_id });
+        modelBuilder.Entity<DelayModel>().HasKey(d => d.delay_id);
+        modelBuilder.Entity<LibraryStockModel>().HasKey(s => s.book_id);
+        modelBuilder.Entity<BorrowedModel>().HasKey(b => b.id_borrow);
 
         // === Relations RoleRights ===
         modelBuilder.Entity<RoleRightsModel>()
@@ -58,34 +41,32 @@ public class AppDbContext : DbContext
 
         // === Relation Users → Role ===
         modelBuilder.Entity<UsersModel>()
-            .HasOne(u => u.role)  // propriété avec majuscule
+            .HasOne(u => u.role)
             .WithMany(r => r.users)
             .HasForeignKey(u => u.role_id)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // === Relation LIBRARY_STOCK 1:1 avec BOOK ===
+        // === LIBRARY_STOCK 1:1 avec BOOK ===
         modelBuilder.Entity<LibraryStockModel>()
             .HasOne<BookModel>()
             .WithOne()
             .HasForeignKey<LibraryStockModel>(s => s.book_id)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // === Relations BORROWED (CRITIQUES : configuration explicite pour éviter shadow properties) ===
+        // === BORROWED : relations et cascade ===
         modelBuilder.Entity<BorrowedModel>(entity =>
         {
-            // Relation avec l'utilisateur
             entity.HasOne(b => b.User)
-                  .WithMany(u => u.BorrowedBooks)  // collection inverse recommandée
+                  .WithMany(u => u.BorrowedBooks)
                   .HasForeignKey(b => b.user_id)
                   .OnDelete(DeleteBehavior.Cascade);
 
-            // Relation avec le livre
             entity.HasOne(b => b.Book)
-                  .WithMany()
+                  .WithMany(book => book.Borrowed) // ← collection inverse
                   .HasForeignKey(b => b.book_id)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.Cascade); // ← SUPPRESSION CASCADE DES EMPRUNTS
 
-            // Contrainte : un seul emprunt actif par utilisateur et par livre
+            // Un seul emprunt actif par utilisateur/livre
             entity.HasIndex(b => new { b.user_id, b.book_id })
                   .IsUnique()
                   .HasFilter("[is_returned] = 0");
